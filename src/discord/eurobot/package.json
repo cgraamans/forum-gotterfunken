@@ -1,0 +1,32 @@
+{
+  "name": "workers",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/svc.js",
+  "scripts": {
+    "start": "npx ts-node-dev --respawn --transpile-only src/eurobot.ts",
+    "test": "npx tslint -c tslint.json 'src/**/*.ts'",
+    "build": "tsc"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/command-line-args": "^5.0.0",
+    "@types/mysql": "^2.15.15",
+    "@types/node": "^12.19.4",
+    "@types/request": "^2.48.5",
+    "@types/snoowrap": "^1.19.0",
+    "ts-node-dev": "^1.0.0-pre.44",
+    "tslint": "^5.20.1",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "@types/ws": "^7.4.0",
+    "command-line-args": "^5.1.1",
+    "discord.js": "^12.5.1",
+    "googleapis": "^67.1.1",
+    "mysql": "^2.18.1",
+    "snoowrap": "^1.21.0",
+    "twitter": "^1.7.1"
+  }
+}

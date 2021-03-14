@@ -1,0 +1,62 @@
+{
+
+    "maxUserWarnings":3,
+
+    "BannedWords":[
+        "卐",
+        "ᛋᛋ",
+        "ꖦ",
+        "sieg heil",
+        "nigger",
+        "kike",
+        "heil hitler"
+    ],
+
+    "Reactions":{
+
+        "default":[
+            "\\*cough\\*",
+            "\\*ahem\\*",
+            "hrm",
+            "tsk",
+            "wat",
+            "\\*sniff\\*",
+            "heh",
+            "hmpf",
+            "reee",
+            "oh you",
+            "hah",
+            "huh",
+            "eh?",
+            "grr",
+            "Freude",
+            "pay debnts",
+            "FREUDE",
+            "uwu",
+            "owo",
+            "hrrrm",
+            "pewpew",
+            "hm?",
+            "FREUDE!"            
+        ]
+
+    },
+
+
+
+    "Roles": [
+        "Regular",
+        "Senator",
+        "Mute",
+        ""
+    ],
+
+    "IgnoredChannels":[
+        "introduction",
+        "rules",
+        "announcements"
+    ],
+
+    "CountryRoles": []
+
+}
