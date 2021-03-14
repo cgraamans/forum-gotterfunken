@@ -60,6 +60,24 @@ export class ToolBox {
     
     }
 
+    public getHumanReadableDate(DateObj:Date) {
+
+        let mm = DateObj.getMonth() + 1,
+        dd = DateObj.getDate();
+
+    let date = [
+        DateObj.getFullYear() + "-",
+        (mm>9 ? "" : "0") + mm + "-",
+        (dd>9 ? "" : "0") + dd
+    ].join("");
+            
+    return date + " " + [
+            (DateObj.getHours() > 9 ? "" : "0") + DateObj.getHours() +":",
+            (DateObj.getMinutes() > 9 ? "" : "0") + DateObj.getMinutes()
+        ].join(""); 
+    }
+
+
 }
 
 export const Tools = new ToolBox();

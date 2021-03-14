@@ -107,5 +107,5 @@ dist
 # Custom
 #
 
-Eurobot Calendar keys ignore
-src/discord/eurobot/src/conf/calendar/Eurobot-Calendar-1c54f0456b16.json
+# Eurobot Calendar keys ignore
+src/discord/eurobot/src/conf/google/Eurobot-Calendar-1c54f0456b16.json

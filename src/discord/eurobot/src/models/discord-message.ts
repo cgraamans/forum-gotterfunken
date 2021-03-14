@@ -1,7 +1,6 @@
 import ConfDiscord from "../conf/discord.json";
 import Discord from "discord.js";
-
-// import Google from "../services/google"
+import {GoogleCalendarModel as GoogleCalendarModelObj} from "./google-calendar";
 
 export class DiscordMessageModel {
 
@@ -15,7 +14,7 @@ export class DiscordMessageModel {
             const role = message.member.roles.cache.find(r=>roleLookup.toLowerCase() === r.name.toLowerCase());
             if(role) {
                 
-                that.UserRoles.push(roleLookup.toLowerCase())
+                that.UserRoles.push(roleLookup.toLowerCase());
 
             }
 
@@ -82,7 +81,7 @@ export class DiscordMessageModel {
     }
 
     // Get commands from message and process them
-    public Commands(message:Discord.Message) {
+    public async Commands(message:Discord.Message) {
 
         let text = message.content.toLowerCase();
         if(text.startsWith("!") || text.startsWith(".")) {
@@ -94,7 +93,7 @@ export class DiscordMessageModel {
                 commandOptions.shift();
             }
 
-            if(['poll','vote'].includes(command)) {
+            if(["poll","vote"].includes(command)) {
 
                 // check fg network or senator
 
@@ -119,34 +118,41 @@ export class DiscordMessageModel {
 
             }
     
-            if(command === 'senatevote') {
+            if(command === "senatevote") {
     
-                if(!this.UserRoles.includes('senator')) return;
+                if(!this.UserRoles.includes("senator")) return;
                 // check senator
 
             }
     
-            if(command === 'calendar') {
+            if(command === "calendar") {
 
                 // weekly calendar
 
+                const GoogleCalendarModel = new GoogleCalendarModelObj();
+                const items = await GoogleCalendarModel.get(commandOptions);
+                if(items.length > 0) {
+                    const embed = GoogleCalendarModel.toRich(items,commandOptions);
+                    if(embed) message.channel.send(embed);    
+                }
+
             }
 
-            if(command === 'ban') {
+            if(command === "ban") {
 
                 // check options for time and user
 
             }
 
-            if(['mute','prison'].includes(command)) {
+            if(["mute","prison"].includes(command)) {
 
                 // check options for time and user
 
             }
 
-            if(command === 'addquote') {
+            if(command === "addquote") {
 
-                if(!this.UserRoles.includes('senator') && !this.UserRoles.includes('citizen')) return;
+                if(!this.UserRoles.includes("senator") && !this.UserRoles.includes("citizen")) return;
 
             }
 

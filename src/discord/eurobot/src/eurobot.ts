@@ -110,7 +110,7 @@ const run = async ()=>{
             }
 
             // Commands
-            DiscordMessageModel.Commands(message);
+            await DiscordMessageModel.Commands(message);
 
         }
 
