@@ -1,8 +1,6 @@
 import ConfDiscord from "../conf/discord.json";
-
 import Discord from "discord.js";
 import {DiscordService} from "../services/discord";
-
 import {GoogleCalendarModel as GoogleCalendarModelObj} from "./google-calendar";
 import { Tools } from "../lib/tools";
 

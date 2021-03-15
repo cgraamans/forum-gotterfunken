@@ -1,13 +1,8 @@
-// import {db} from "./services/db";
 import ConfDiscord from "./conf/discord.json";
-import {DiscordService} from "./services/discord";
 import Discord from "discord.js";
 import {DiscordMessageModel as DiscordMessageModelObj} from "./models/discord-message";
-
-// import {reddit} from "./services/reddit";
+import {DiscordService} from "./services/discord";
 import {Tools} from "./lib/tools";
-
-// let instances:any = [];
 
 const run = async ()=>{
 
@@ -150,8 +145,6 @@ const run = async ()=>{
     });
 
     DiscordService.client.on("guildMemberAdd",async (member:Discord.GuildMember)=> {
-
-
 
     });
 
