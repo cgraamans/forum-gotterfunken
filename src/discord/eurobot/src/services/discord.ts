@@ -1,4 +1,3 @@
-import ConfDiscord from "../conf/discord.json";
 import {db} from "./db";
 import Discord from "discord.js";
 
@@ -8,6 +7,8 @@ export class DiscordFactory {
     private static instance:DiscordFactory;
 
     public client:Discord.Client = new Discord.Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] });
+
+    public Timers:NodeJS.Timeout[] = [];
 
     constructor() {
 

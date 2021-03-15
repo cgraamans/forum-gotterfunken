@@ -36,15 +36,15 @@ const run = async ()=>{
                         .setDescription(`Tag: ${message.author.tag}\nWarnings Exceeded`);
 
                     await message.channel.send(embedMsg);
-                    // await message.member.ban({reason:'Warnings Exceeded: Banned words.'});
+                    await message.member.ban({reason:'Warnings Exceeded: Banned words.'});
 
                 } else {
                     
                     let embedMsg = new Discord.MessageEmbed()
                         .setColor('#0099ff')
-                        .setTitle(`🛑 Warning for ${message.author.username}`)
-                        .setDescription(`You, ${message.author}, have been warned for using banned words on this server.\n\nPlease refrain from doing so in the future and refer to the #rules or ask a Senator for help.`)
-                        .setFooter(`${warnings} ${Tools.getStringMultiplicity(warnings,"warning")} left until 🔨 ban.`);
+                        .setTitle(`🛑 Warning for ${message.author.username}: Banned Word`)
+                        .setDescription(`You, ${message.author}, have been warned for using a banned word or phrase on this server.\n\nPlease refer to the #rules or ask a Senator for help.`)
+                        .setFooter(`${warnings} ${Tools.stringMultiplicity(warnings,"warning")} left until 🔨 ban.`);
                     
                     await message.channel.send(embedMsg);
 
@@ -61,9 +61,7 @@ const run = async ()=>{
                 if(Math.round(Math.random()) < 1) {
 
                     let emoji = await DiscordMessageModel.MessageGuildEmoji(message).catch(e=>{throw e});
-                    message.react(emoji.id);
-
-                    return;
+                    await message.react(emoji.id);
 
                 } else {
 
@@ -73,9 +71,9 @@ const run = async ()=>{
                     let discordMessage = Tools.shuffleArray([reaction,emoji]).join(" ");
                     await message.channel.send(discordMessage);
 
-                    return;
-
                 }
+
+                return;
 
             }
 

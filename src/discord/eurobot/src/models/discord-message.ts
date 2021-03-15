@@ -1,6 +1,10 @@
 import ConfDiscord from "../conf/discord.json";
+
 import Discord from "discord.js";
+import {DiscordService} from "../services/discord";
+
 import {GoogleCalendarModel as GoogleCalendarModelObj} from "./google-calendar";
+import { Tools } from "../lib/tools";
 
 export class DiscordMessageModel {
 
@@ -93,9 +97,9 @@ export class DiscordMessageModel {
                 commandOptions.shift();
             }
 
+            // POLL COMMAND
+            // VOTE COMMAND
             if(["poll","vote"].includes(command)) {
-
-                // check fg network or senator
 
                 let pollTime:number = 300000;
                 const regex:RegExp = /^[0-9]?[0-9]*[dhms]$/gm;
@@ -114,47 +118,73 @@ export class DiscordMessageModel {
 
                 });
 
-                // check citizen or senator
-
+                return;
+            
             }
-    
-            if(command === "senatevote") {
-    
-                if(!this.UserRoles.includes("senator")) return;
-                // check senator
 
-            }
-    
+            // CALENDAR COMMAND
             if(command === "calendar") {
-
-                // weekly calendar
 
                 const GoogleCalendarModel = new GoogleCalendarModelObj();
                 const items = await GoogleCalendarModel.get(commandOptions);
                 if(items.length > 0) {
-                    const embed = GoogleCalendarModel.toRich(items,commandOptions);
+
+                    const rangeObj = GoogleCalendarModel.CalendarUnixTimes(commandOptions.join(" "));
+                    const embed = GoogleCalendarModel.toRich(items,rangeObj);
                     if(embed) message.channel.send(embed);    
+
+                }
+
+                return;
+
+            }
+
+            if(["mute"].includes(command)) {
+
+                if(message.mentions && message.mentions.members) {
+
+                    const futureTimeTimeout:number = Tools.stringDateSMHDToTime(message.content.toLowerCase());
+
+                    const mute = message.guild.roles.cache.find(role=>role.name.toLowerCase() === "mute");
+                    message.mentions.members.forEach(mentionedMember=>{
+
+                        mentionedMember.roles.add(mute);
+
+                        DiscordService.Timers.push(setTimeout(()=>{
+
+                            if(message.member.roles.cache.find(memberRole=>memberRole.id === mute.id)) {
+
+                                mentionedMember.roles.remove(mute);
+
+                            }
+
+                            return;
+
+                        },futureTimeTimeout));
+
+                    });
+
                 }
 
             }
 
-            if(command === "ban") {
+            if(["unmute"].includes(command)) {
 
-                // check options for time and user
+                const mute = message.guild.roles.cache.find(role=>role.name.toLowerCase() === "mute");
 
-            }
+                message.mentions.members.forEach(mentionedMember=>{
 
-            if(["mute","prison"].includes(command)) {
+                    if(mentionedMember.roles.cache.find(memberRole=>memberRole.id === mute.id)) {
 
-                // check options for time and user
+                        mentionedMember.roles.remove(mute);
 
-            }
+                    }
 
-            if(command === "addquote") {
-
-                if(!this.UserRoles.includes("senator") && !this.UserRoles.includes("citizen")) return;
+                });
 
             }
+
+            if(["warn"].includes(command)) {}
 
         }
 
