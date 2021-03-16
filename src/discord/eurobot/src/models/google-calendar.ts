@@ -9,7 +9,7 @@ export class GoogleCalendarModel {
 
     // Convert human calendar times to Date object ranges (ms)
     // CalendarUnixTimes
-    public CalendarUnixTimes(commandOptString:string) {
+    public CalendarTextToUnixTimes(text:string) {
 
         let rtn:{from:Date,to?:Date,human:string} = {
             from:new Date(new Date().setHours(0,0,0,0)),
@@ -17,7 +17,7 @@ export class GoogleCalendarModel {
         };
         rtn.to = new Date(rtn.from.getTime() + (86400000 * 7) - 1);
 
-        if(commandOptString.includes("tomorrow")) {
+        if(text.includes("tomorrow")) {
     
             rtn.from = new Date(new Date(new Date().getTime() + 86400000).setHours(0,0,0,0));
             rtn.to = new Date(new Date(rtn.from).getTime() + (86400000));
@@ -25,7 +25,7 @@ export class GoogleCalendarModel {
     
         }
 
-        if(commandOptString.includes("today")) {
+        if(text.includes("today")) {
     
             rtn.from = new Date(new Date().setHours(0,0,0,0));
             rtn.to = new Date(rtn.from.getTime() + (86400000 -1));
@@ -33,22 +33,21 @@ export class GoogleCalendarModel {
     
         }
     
-        if(commandOptString.includes("next week")) {
+        if(text.includes("next week")) {
     
             rtn.from = new Date(new Date(new Date().getTime() + (86400000 * 7)).setHours(0,0,0,0));
             rtn.to = new Date(rtn.from.getTime() + (86400000 * 7) - 1);
             rtn.human = "next week";
     
         }
-    
-        if(commandOptString.match(/[1-9]d/g)) {
-    
-            let toNum = commandOptString.split("d");
-    
+
+        const smhd = Tools.stringDateSMHDToTime(text);
+        if(smhd) {
+
             rtn.from = new Date(new Date().setHours(0,0,0,0));
-            rtn.to = new Date(rtn.from.getTime() + (86400000 * parseInt(toNum[0])) - 1);
-            rtn.human = toNum[0] + " days";
-    
+            rtn.to = new Date(rtn.from.getTime() + (smhd -1));
+            rtn.human = Tools.stringDateSMHDToHuman(text);
+
         }
 
         return rtn;
@@ -122,13 +121,9 @@ export class GoogleCalendarModel {
 
     // Get the calendar by command options
     // get
-    public async get(commandOpts:any[]) {
+    public async get(Range:{from:Date,to?:Date,human:string}) {
 
-        const unixTimes = this.CalendarUnixTimes(commandOpts.join(" "));
-
-        const calendar = await Google.Calendar(unixTimes.from,unixTimes.to).catch((e:any)=>{console.log(e)});
-
-        return calendar;
+        return await Google.Calendar(Range.from,Range.to).catch((e:any)=>{console.log(e)});
 
     } // get
 

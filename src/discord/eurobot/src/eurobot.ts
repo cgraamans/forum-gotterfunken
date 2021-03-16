@@ -2,6 +2,9 @@ import ConfDiscord from "./conf/discord.json";
 import Discord from "discord.js";
 import {DiscordMessageModel as DiscordMessageModelObj} from "./models/discord-message";
 import {DiscordService} from "./services/discord";
+import {GoogleCalendarModel as GoogleCalendarModelObj} from "./models/google-calendar";
+import {RedditService} from "./services/reddit";
+
 import {Tools} from "./lib/tools";
 
 const run = async ()=>{
@@ -15,6 +18,7 @@ const run = async ()=>{
         const DiscordMessageModel = new DiscordMessageModelObj(message);
         if(message.channel) {
 
+            // BLACKLIST
             // Blacklisted Words and Phrases
             if(DiscordMessageModel.BannedPhrases(message.content)) {
 
@@ -48,8 +52,9 @@ const run = async ()=>{
                 message.delete();
                 return;
 
-            }
+            } // BLACKLIST
 
+            // BOT REACT
             // Bot Mentions and Bot Username Mentions
             if(message.mentions.has(DiscordService.client.user) || message.content.toLowerCase().includes(DiscordService.client.user.username.toLowerCase())) {
 
@@ -59,6 +64,8 @@ const run = async ()=>{
                     await message.react(emoji.id);
 
                 } else {
+
+                    if(ConfDiscord.Channels.Ignore.includes(message.channel.id)) return;
 
                     let reaction = await DiscordMessageModel.React(message).catch(e=>{throw e});
                     let emoji = await DiscordMessageModel.MessageGuildEmoji(message).catch(e=>{throw e});
@@ -70,30 +77,36 @@ const run = async ()=>{
 
                 return;
 
-            }
+            } // BOT REACT
 
             // EU Flag React [loveEU]
             if(message.content.toLowerCase().includes("🇪🇺")) {
 
-                let emoji = await DiscordMessageModel.MessageGuildEmoji(message,"starryeyes").catch(e=>{throw e});
-                message.react('🇪🇺');
+                if(ConfDiscord.Channels.Ignore.includes(message.channel.id)) return;
+
+                let emoji = await DiscordMessageModel.MessageGuildEmoji(message,"loveEU").catch(e=>{throw e});
+                message.react(emoji.id);
 
                 return;
 
-            }
+            } // EU Flag React
 
             // FREUDE React
             if(message.content.toLowerCase().endsWith("freude")) {
+
+                if(ConfDiscord.Channels.Ignore.includes(message.channel.id)) return;
 
                 let emoji = await DiscordMessageModel.MessageGuildEmoji(message).catch(e=>{throw e});
                 await message.channel.send(`SCHÖNER ${emoji}`);
 
                 return;
 
-            }
+            } // FREUDE React
 
             // GOTTERFUNKEN React
             if(message.content.toLowerCase().endsWith("gotterfunken") || message.content.toLowerCase().endsWith("götterfunken")) {
+
+                if(ConfDiscord.Channels.Ignore.includes(message.channel.id)) return;
 
                 let emoji = await DiscordMessageModel.MessageGuildEmoji(message).catch(e=>{throw e});
                 await message.channel.send(`${emoji}`);
@@ -102,8 +115,96 @@ const run = async ()=>{
 
             }
 
-            // Commands
-            await DiscordMessageModel.Commands(message);
+            // Extract Commands
+            const commands = DiscordMessageModel.Commands(message);
+            if(!commands) return;
+
+            // CALENDAR COMMAND            
+            if(commands.command === "calendar") {
+
+                const GoogleCalendarModel = new GoogleCalendarModelObj();
+
+                const range = GoogleCalendarModel.CalendarTextToUnixTimes(message.content);
+                if(!range) return;
+
+                const items = await GoogleCalendarModel.get(range);
+                if(items.length > 0) {
+
+                    const embed = GoogleCalendarModel.toRich(items,range);
+                    if(embed) await message.channel.send(embed);    
+
+                }
+
+                return;
+
+            }
+
+            // MUTE command
+            if(commands.command === "mute") {
+
+                if(!DiscordMessageModel.UserRoles.includes("Admin") && !DiscordMessageModel.UserRoles.includes("Mod")) return;
+
+                if(message.mentions && message.mentions.members) {
+
+                    let futureTimeTimeout:number = Tools.stringDateSMHDToTime(message.content.toLowerCase());
+                    if(!futureTimeTimeout) futureTimeTimeout = 120000;
+                    const mute = message.guild.roles.cache.find(role=>role.name.toLowerCase() === "mute");
+                    message.mentions.members.forEach(mentionedMember=>{
+
+                        mentionedMember.roles.add(mute);
+
+                        DiscordService.Timers.push(setTimeout(()=>{
+
+                            if(message.member.roles.cache.find(memberRole=>memberRole.id === mute.id)) {
+
+                                mentionedMember.roles.remove(mute);
+
+                            }
+
+                        },futureTimeTimeout));
+
+                    });
+
+                }
+
+            }
+
+            // UNMUTE command
+            if(commands.command === "unmute") {
+
+                if(!DiscordMessageModel.UserRoles.includes("Admin") && !DiscordMessageModel.UserRoles.includes("Mod")) return;
+
+                const mute = message.guild.roles.cache.find(role=>role.name.toLowerCase() === "mute");
+
+                message.mentions.members.forEach(mentionedMember=>{
+
+                    if(mentionedMember.roles.cache.find(memberRole=>memberRole.id === mute.id)) {
+
+                        mentionedMember.roles.remove(mute);
+
+                    }
+
+                });
+
+            }
+
+            // NEWS command
+            if(commands.command === "news") {
+
+                let hot = await RedditService.client.getHot('EUNews',{limit:5});
+                if(hot) {
+                    
+                    hot.forEach((submission,idx)=>{
+                        if(submission.pinned) hot.splice(idx,1);
+                    });
+
+                }
+
+
+            }
+
+            // POLL command
+
 
         }
 
@@ -137,8 +238,6 @@ const run = async ()=>{
 
         // Has bot action footer
         if((reaction.message.embeds.length > 0) && reaction.message.embeds[0].footer && reaction.message.embeds[0].footer.text.endsWith(reaction.message.id)) {
-
-
 
         }
 

@@ -1,6 +1,6 @@
 {
-  "name": "workers",
-  "version": "1.0.0",
+  "name": "eurobot",
+  "version": "2.0.0",
   "description": "",
   "main": "dist/svc.js",
   "scripts": {

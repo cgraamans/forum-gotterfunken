@@ -52,13 +52,6 @@ export class ToolBox {
 
     }
 
-    // Put an 's' at the end of a word if num > 0
-    stringMultiplicity(number:number,string:string){
-        
-        return number !== 1 ? string + "s" : string;
-    
-    }
-
     // YYYY-MM-DD HH:ss output.
     dateTimeToHHss(DateObj:Date) {
 
@@ -78,10 +71,42 @@ export class ToolBox {
 
     }
 
+    // Put an 's' at the end of a word if num > 0
+    stringMultiplicity(number:number,string:string){
+        
+        return number !== 1 ? string + "s" : string;
+    
+    }
+
+    // Convert string with [number][s/m/h/d] to human readable
+    stringDateSMHDToHuman(string:string) {
+
+        const matches = string.match(/(\d?\d[dhms])/);
+        if(matches) {
+
+            const exploded = matches[0].split("");
+            const pop = exploded.pop();
+            const pack = parseInt(exploded.join(""));
+
+            let human:string;
+            if(pop === "s") human = "second";
+            if(pop === "m") human = "minute";
+            if(pop === "h") human = "hour";
+            if(pop === "d") human = "day";
+            
+            if(human) return `${pack} ${this.stringMultiplicity(pack,human)}`;
+
+        }
+
+        return;
+
+    }
+
+    // Convert string with [number][s/m/h/d] to human readable
     stringDateSMHDToTime(string:string) {
 
         const matches = string.match(/(\d?\d[dhms])/);
-        if(matches.length > 0) {
+        if(matches) {
 
             const exploded = matches[0].split("");
             const pop = exploded.pop();
@@ -93,7 +118,9 @@ export class ToolBox {
             if(pop === "h") time = 3600000;
             if(pop === "d") time = 86400000;
 
-            return time;
+            const pack = parseInt(exploded.join(""));
+
+            return time * pack;
 
         }
 

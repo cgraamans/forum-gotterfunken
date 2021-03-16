@@ -1,26 +1,26 @@
 import ConfDiscord from "../conf/discord.json";
-import Discord from "discord.js";
+import Discord, { MessageMentions } from "discord.js";
 import {DiscordService} from "../services/discord";
 import {GoogleCalendarModel as GoogleCalendarModelObj} from "./google-calendar";
 import { Tools } from "../lib/tools";
 
 export class DiscordMessageModel {
 
-    public UserRoles:any[] = [];
+    public UserRoles:string[] = [];
 
     constructor(message:Discord.Message) {
 
         let that = this;
-        ConfDiscord.Roles.forEach(function(roleLookup) {
 
-            const role = message.member.roles.cache.find(r=>roleLookup.toLowerCase() === r.name.toLowerCase());
-            if(role) {
-                
-                that.UserRoles.push(roleLookup.toLowerCase());
+        for(let role in ConfDiscord.Roles.User) {
 
-            }
+            (ConfDiscord.Roles.User as any)[role].forEach((id:string)=>{
 
-        });
+                if(message.member.roles.cache.find(r=>r.id === id) && !this.UserRoles.includes(role)) this.UserRoles.push(role);
+
+            });
+
+        }
 
     }
 
@@ -82,105 +82,136 @@ export class DiscordMessageModel {
 
     }
 
+    public stringSanitizeTime(text:string) {
+
+        let rtn:{text:string,time?:number} = {text}
+        let textArr = text.split(" ");
+
+        textArr.forEach((section:string,idx:number)=>{
+
+            const toTime = Tools.stringDateSMHDToTime(section);
+            if(toTime) {
+
+                rtn.time = toTime;
+                textArr.splice(idx, 1);
+                
+            }
+
+        });
+
+        rtn.text = textArr.join(" ");
+        
+        return rtn;
+
+    }
+
+    public stringSanitizeChannel(text:string) {
+
+        let rtn:{text:string,channel?:string} = {text}
+        let textArr = text.split(" ");
+
+        textArr.forEach((section:string,idx:number)=>{
+
+            const matchedChannel = section.match(MessageMentions.CHANNELS_PATTERN);
+            if(matchedChannel) {
+
+                rtn.channel = section.slice(2,-1);           
+                textArr.splice(idx, 1);
+
+            }
+
+        });
+
+        rtn.text = textArr.join(" ");
+
+        return rtn;
+
+    }
+
+    public stringSanitizeNumber(text:string) {
+
+        let rtn:{text:string,number?:number} = {text};
+        let textArr = text.split(" ");
+
+        textArr.forEach((section:string,idx:number)=>{
+
+            if(section.match(/\d/)) rtn.number = parseInt(section);
+            textArr.splice(idx, 1);
+
+        });
+
+        rtn.text = textArr.join(" ");
+
+        return rtn;
+
+    }
+
+    public Commands(message:Discord.Message) {
+
+        if(message.content.startsWith("!") || message.content.startsWith(".")) {
+
+            const text = message.content.slice(1);
+            let textArr = text.split(" ");
+            const command = textArr[0];
+
+            if(textArr.length > 1) {
+                textArr.shift();
+            }
+
+            return {
+                command:command,
+                text:textArr.join(" "),
+            };
+
+        }
+
+        return;
+
+    }
+
     // Get commands from message and process them
-    public async Commands(message:Discord.Message) {
+    public async _Commands(message:Discord.Message) {
 
-        let text = message.content.toLowerCase();
-        if(text.startsWith("!") || text.startsWith(".")) {
+        if(message.content.startsWith("!") || message.content.startsWith(".")) {
 
-            text = text.slice(1);
+            const text = message.content.slice(1);
+
             let commandOptions = text.split(" ");
             const command = commandOptions[0];
             if(commandOptions.length > 1) {
                 commandOptions.shift();
             }
 
-            // POLL COMMAND
-            // VOTE COMMAND
-            if(["poll","vote"].includes(command)) {
 
-                let pollTime:number = 300000;
-                const regex:RegExp = /^[0-9]?[0-9]*[dhms]$/gm;
-                let matchedTime:string|null = null;
-                commandOptions.forEach((section:string,idx:number)=>{
-
-                    const matches = section.match(regex);
-                    if(matches) {
-                        matchedTime = matches[0];
-                        commandOptions.slice
-                    }
-                    console.log();
-                    if(regex.test(section)) {     
-
-                    }
-
-                });
-
-                return;
             
-            }
+            // NEWS COMMAND
+            // reddit get for news top 3
+            if(command.toLowerCase() === "news") {
 
-            // CALENDAR COMMAND
-            if(command === "calendar") {
-
-                const GoogleCalendarModel = new GoogleCalendarModelObj();
-                const items = await GoogleCalendarModel.get(commandOptions);
-                if(items.length > 0) {
-
-                    const rangeObj = GoogleCalendarModel.CalendarUnixTimes(commandOptions.join(" "));
-                    const embed = GoogleCalendarModel.toRich(items,rangeObj);
-                    if(embed) message.channel.send(embed);    
-
-                }
-
-                return;
+                if(!this.UserRoles.includes("Admin") && !this.UserRoles.includes("Mod") && !this.UserRoles.includes("News")) return;
 
             }
 
-            if(["mute"].includes(command)) {
+            // POLL COMMAND
+            if(command.toLowerCase() === "poll") {
 
-                if(message.mentions && message.mentions.members) {
+                if(!this.UserRoles.includes("Admin") && !this.UserRoles.includes("Mod") && !this.UserRoles.includes("Poll")) return;
 
-                    const futureTimeTimeout:number = Tools.stringDateSMHDToTime(message.content.toLowerCase());
+                let pollTime:number = 86400000;
+                let pollString:string;
 
-                    const mute = message.guild.roles.cache.find(role=>role.name.toLowerCase() === "mute");
-                    message.mentions.members.forEach(mentionedMember=>{
+                pollString = commandOptions.join(" ");
+                if(!pollString.endsWith("?")) {
 
-                        mentionedMember.roles.add(mute);
-
-                        DiscordService.Timers.push(setTimeout(()=>{
-
-                            if(message.member.roles.cache.find(memberRole=>memberRole.id === mute.id)) {
-
-                                mentionedMember.roles.remove(mute);
-
-                            }
-
-                            return;
-
-                        },futureTimeTimeout));
-
-                    });
+                    await message.channel.send(`${message.member.user}, your poll must end with a '?'`);
+                    return;
 
                 }
 
             }
 
-            if(["unmute"].includes(command)) {
 
-                const mute = message.guild.roles.cache.find(role=>role.name.toLowerCase() === "mute");
 
-                message.mentions.members.forEach(mentionedMember=>{
-
-                    if(mentionedMember.roles.cache.find(memberRole=>memberRole.id === mute.id)) {
-
-                        mentionedMember.roles.remove(mute);
-
-                    }
-
-                });
-
-            }
 
             if(["warn"].includes(command)) {}
 

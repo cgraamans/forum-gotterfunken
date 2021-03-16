@@ -5,11 +5,11 @@ export class RedditFactory {
 
     private static instance:RedditFactory;
 
-    client:Snoowrap;
+    public client:Snoowrap;
 
     constructor(){
 
-        this.client = require("twitter");
+        this.client = require("snoowrap");
         this.client = new Snoowrap({
             userAgent: 'GotterfunkenPostingBot',
             clientId: process.env.FG_REDDIT_CLIENT_ID,
@@ -31,4 +31,4 @@ export class RedditFactory {
 
 }
 
-export const reddit = RedditFactory.getInstance();
+export const RedditService = RedditFactory.getInstance();
