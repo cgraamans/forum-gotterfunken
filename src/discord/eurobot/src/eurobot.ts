@@ -1,9 +1,11 @@
 import ConfDiscord from "./conf/discord.json";
 import Discord from "discord.js";
-import {DiscordMessageModel as DiscordMessageModelObj} from "./models/discord-message";
+import {DiscordModelCalendar as ModelCalendarObj} from "./models/discord-calendar";
+import {DiscordModelMessage as ModelMessageObj} from "./models/discord-message";
+import {DiscordModelPoll as ModelPollObj} from "./models/discord-poll";
+import {DiscordModelNews as ModelNewsObj} from "./models/discord-news";
+
 import {DiscordService} from "./services/discord";
-import {GoogleCalendarModel as GoogleCalendarModelObj} from "./models/google-calendar";
-import {RedditService} from "./services/reddit";
 
 import {Tools} from "./lib/tools";
 
@@ -15,12 +17,12 @@ const run = async ()=>{
         
         if(message.member.user.bot) return;
 
-        const DiscordMessageModel = new DiscordMessageModelObj(message);
+        const ModelMessage = new ModelMessageObj(message);
         if(message.channel) {
 
             // BLACKLIST
             // Blacklisted Words and Phrases
-            if(DiscordMessageModel.BannedPhrases(message.content)) {
+            if(ModelMessage.BannedPhrases(message.content)) {
 
                 await DiscordService.UserWarningAdd(message.author,'Banned Words');
 
@@ -60,15 +62,15 @@ const run = async ()=>{
 
                 if(Math.round(Math.random()) < 1) {
 
-                    let emoji = await DiscordMessageModel.MessageGuildEmoji(message).catch(e=>{throw e});
+                    let emoji = await ModelMessage.MessageGuildEmoji(message).catch(e=>{throw e});
                     await message.react(emoji.id);
 
                 } else {
 
                     if(ConfDiscord.Channels.Ignore.includes(message.channel.id)) return;
 
-                    let reaction = await DiscordMessageModel.React(message).catch(e=>{throw e});
-                    let emoji = await DiscordMessageModel.MessageGuildEmoji(message).catch(e=>{throw e});
+                    let reaction = await ModelMessage.React(message).catch(e=>{throw e});
+                    let emoji = await ModelMessage.MessageGuildEmoji(message).catch(e=>{throw e});
                     
                     let discordMessage = Tools.shuffleArray([reaction,emoji]).join(" ");
                     await message.channel.send(discordMessage);
@@ -84,7 +86,19 @@ const run = async ()=>{
 
                 if(ConfDiscord.Channels.Ignore.includes(message.channel.id)) return;
 
-                let emoji = await DiscordMessageModel.MessageGuildEmoji(message,"loveEU").catch(e=>{throw e});
+                let emoji = await ModelMessage.MessageGuildEmoji(message,"loveEU").catch(e=>{throw e});
+                message.react(emoji.id);
+
+                return;
+
+            } // EU Flag React
+
+            // keyword react [loveEU]
+            if(message.content.toLowerCase().includes("uschi") || message.content.toLowerCase().includes("sassoli")) {
+
+                if(ConfDiscord.Channels.Ignore.includes(message.channel.id)) return;
+
+                let emoji = await ModelMessage.MessageGuildEmoji(message).catch(e=>{throw e});
                 message.react(emoji.id);
 
                 return;
@@ -96,7 +110,7 @@ const run = async ()=>{
 
                 if(ConfDiscord.Channels.Ignore.includes(message.channel.id)) return;
 
-                let emoji = await DiscordMessageModel.MessageGuildEmoji(message).catch(e=>{throw e});
+                let emoji = await ModelMessage.MessageGuildEmoji(message).catch(e=>{throw e});
                 await message.channel.send(`SCHÖNER ${emoji}`);
 
                 return;
@@ -108,7 +122,7 @@ const run = async ()=>{
 
                 if(ConfDiscord.Channels.Ignore.includes(message.channel.id)) return;
 
-                let emoji = await DiscordMessageModel.MessageGuildEmoji(message).catch(e=>{throw e});
+                let emoji = await ModelMessage.MessageGuildEmoji(message).catch(e=>{throw e});
                 await message.channel.send(`${emoji}`);
 
                 return;
@@ -116,21 +130,21 @@ const run = async ()=>{
             }
 
             // Extract Commands
-            const commands = DiscordMessageModel.Commands(message);
-            if(!commands) return;
+            const command = ModelMessage.GetCommand(message);
+            if(!command) return;
 
             // CALENDAR COMMAND            
-            if(commands.command === "calendar") {
+            if(command.string === "calendar") {
 
-                const GoogleCalendarModel = new GoogleCalendarModelObj();
+                const ModelCalendar = new ModelCalendarObj();
 
-                const range = GoogleCalendarModel.CalendarTextToUnixTimes(message.content);
+                const range = ModelCalendar.CalendarTextToUnixTimes(message.content);
                 if(!range) return;
 
-                const items = await GoogleCalendarModel.get(range);
+                const items = await ModelCalendar.get(range);
                 if(items.length > 0) {
 
-                    const embed = GoogleCalendarModel.toRich(items,range);
+                    const embed = ModelCalendar.toRich(items,range);
                     if(embed) await message.channel.send(embed);    
 
                 }
@@ -140,14 +154,15 @@ const run = async ()=>{
             }
 
             // MUTE command
-            if(commands.command === "mute") {
+            if(command.string === "mute") {
 
-                if(!DiscordMessageModel.UserRoles.includes("Admin") && !DiscordMessageModel.UserRoles.includes("Mod")) return;
+                if(!ModelMessage.UserRoles.includes("Admin") && !ModelMessage.UserRoles.includes("Mod")) return;
 
                 if(message.mentions && message.mentions.members) {
 
                     let futureTimeTimeout:number = Tools.stringDateSMHDToTime(message.content.toLowerCase());
                     if(!futureTimeTimeout) futureTimeTimeout = 120000;
+
                     const mute = message.guild.roles.cache.find(role=>role.name.toLowerCase() === "mute");
                     message.mentions.members.forEach(mentionedMember=>{
 
@@ -170,9 +185,9 @@ const run = async ()=>{
             }
 
             // UNMUTE command
-            if(commands.command === "unmute") {
+            if(command.string === "unmute") {
 
-                if(!DiscordMessageModel.UserRoles.includes("Admin") && !DiscordMessageModel.UserRoles.includes("Mod")) return;
+                if(!ModelMessage.UserRoles.includes("Admin") && !ModelMessage.UserRoles.includes("Mod")) return;
 
                 const mute = message.guild.roles.cache.find(role=>role.name.toLowerCase() === "mute");
 
@@ -189,22 +204,39 @@ const run = async ()=>{
             }
 
             // NEWS command
-            if(commands.command === "news") {
+            if(command.string === "news") {
 
-                let hot = await RedditService.client.getHot('EUNews',{limit:5});
-                if(hot) {
-                    
-                    hot.forEach((submission,idx)=>{
-                        if(submission.pinned) hot.splice(idx,1);
-                    });
+                const ModelNews = new ModelNewsObj();
+                let news = await ModelNews.get();
+
+                if(news) {
+
+                    const embed = ModelNews.toRich(news);
+                    if(embed) await message.channel.send(embed);
 
                 }
 
+                return;
 
             }
 
             // POLL command
 
+            if(command.string === "poll") {
+
+                if(!ModelMessage.UserRoles.includes("Admin") && !ModelMessage.UserRoles.includes("Mod")) return;
+
+                const ModelPoll = new ModelPollObj();
+                const post = ModelPoll.post(command,message);
+
+                // if(poll) {
+
+                //     const embedObj = ModelPoll.toRich(poll);
+                //     // if(embed)
+
+                // }
+
+            }
 
         }
 
@@ -212,9 +244,9 @@ const run = async ()=>{
 
     });
 
-    DiscordService.client.on("messageReactionAdd",async (reaction:Discord.MessageReaction)=>{
+    DiscordService.client.on("messageReactionAdd",async (reaction:Discord.MessageReaction, user:Discord.User|Discord.PartialUser)=>{
 
-        if(reaction.message.member.user.bot) return;
+        if(user.bot) return;
 
         // Fetch reaction message if not cached
         if (reaction.message.partial) await reaction.message.fetch();
@@ -222,8 +254,13 @@ const run = async ()=>{
         // Has bot action footer
         if((reaction.message.embeds.length > 0) && reaction.message.embeds[0].footer && reaction.message.embeds[0].footer.text.endsWith(reaction.message.id)) {
 
+            const ModelPoll = new ModelPollObj();
+            const update = ModelPoll.update(reaction.message);
+            // if(update) {
+            //     reaction.message
+            //     // richMsg
 
-
+            // }
         }
 
 
@@ -238,6 +275,14 @@ const run = async ()=>{
 
         // Has bot action footer
         if((reaction.message.embeds.length > 0) && reaction.message.embeds[0].footer && reaction.message.embeds[0].footer.text.endsWith(reaction.message.id)) {
+
+            const ModelPoll = new ModelPollObj();
+            const update = ModelPoll.update(reaction.message);
+            // if(update) {
+            //     reaction.message
+            //     // richMsg
+
+            // }
 
         }
 

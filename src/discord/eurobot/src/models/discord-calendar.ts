@@ -1,9 +1,9 @@
 import {calendar as CalendarOptions} from "../conf/google/options.json"
-import Discord, { Message } from "discord.js";
+import Discord from "discord.js";
 import {Google} from "../services/google";
 import {Tools} from "../lib/tools";
 
-export class GoogleCalendarModel {
+export class DiscordModelCalendar {
 
     constructor() {}
 
@@ -103,7 +103,7 @@ export class GoogleCalendarModel {
         
                     if(item.description) description = `${item.description}\n`;
         
-                    calendar += `**${item.summary}**\n${dateString}\n${description}\n`;    
+                    calendar += `🔹**${item.summary}**\n${dateString}\n${description}\n`;    
 
                 }
     
@@ -112,9 +112,9 @@ export class GoogleCalendarModel {
             calendarString = calendarString + calendar; 
 
             return new Discord.MessageEmbed()
-                .setTitle(`Forum Götterfunken Calendar`)
+                .setTitle(`🇪🇺 Eurobot Calendar`)
                 .setDescription(calendarString)
-                .setColor(0x003399)
+                .setColor(0xFFCC00)
                 .setFooter(itemLengthString);
 
     } // toRich

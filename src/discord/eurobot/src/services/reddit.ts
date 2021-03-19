@@ -1,4 +1,3 @@
-import {db} from './db';
 import Snoowrap from 'snoowrap';
 
 export class RedditFactory {

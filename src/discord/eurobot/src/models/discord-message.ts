@@ -1,10 +1,10 @@
 import ConfDiscord from "../conf/discord.json";
 import Discord, { MessageMentions } from "discord.js";
-import {DiscordService} from "../services/discord";
-import {GoogleCalendarModel as GoogleCalendarModelObj} from "./google-calendar";
 import { Tools } from "../lib/tools";
 
-export class DiscordMessageModel {
+import * as Types from "../types/index.d"
+
+export class DiscordModelMessage {
 
     public UserRoles:string[] = [];
 
@@ -82,140 +82,77 @@ export class DiscordMessageModel {
 
     }
 
-    public stringSanitizeTime(text:string) {
+    public CommandGetOptionsTime(options:string[]) {
 
-        let rtn:{text:string,time?:number} = {text}
-        let textArr = text.split(" ");
+        let times:number[] = [];
 
-        textArr.forEach((section:string,idx:number)=>{
+        options.forEach((section:string,idx:number)=>{
 
             const toTime = Tools.stringDateSMHDToTime(section);
-            if(toTime) {
-
-                rtn.time = toTime;
-                textArr.splice(idx, 1);
-                
-            }
+            if(toTime) 
+                times.push(toTime);
 
         });
 
-        rtn.text = textArr.join(" ");
-        
-        return rtn;
+        return times;
 
     }
 
-    public stringSanitizeChannel(text:string) {
+    public CommandGetOptionsChannels(options:string[]) {
 
-        let rtn:{text:string,channel?:string} = {text}
-        let textArr = text.split(" ");
+        let channels:string[] = [];
 
-        textArr.forEach((section:string,idx:number)=>{
+        options.forEach((section:string,idx:number)=>{
 
             const matchedChannel = section.match(MessageMentions.CHANNELS_PATTERN);
-            if(matchedChannel) {
-
-                rtn.channel = section.slice(2,-1);           
-                textArr.splice(idx, 1);
-
-            }
+            if(matchedChannel) 
+                channels.push(section.slice(2,-1));
 
         });
 
-        rtn.text = textArr.join(" ");
-
-        return rtn;
+        return channels;
 
     }
 
-    public stringSanitizeNumber(text:string) {
+    public CommandGetOptionsNumbers(options:string[]) {
 
-        let rtn:{text:string,number?:number} = {text};
-        let textArr = text.split(" ");
+        let numbers:number[] = [];
 
-        textArr.forEach((section:string,idx:number)=>{
+        options.forEach((section:string)=>{
 
-            if(section.match(/\d/)) rtn.number = parseInt(section);
-            textArr.splice(idx, 1);
+            if(section.match(/^\d$/)) 
+                numbers.push(parseInt(section)); 
 
         });
 
-        rtn.text = textArr.join(" ");
-
-        return rtn;
-
-    }
-
-    public Commands(message:Discord.Message) {
-
-        if(message.content.startsWith("!") || message.content.startsWith(".")) {
-
-            const text = message.content.slice(1);
-            let textArr = text.split(" ");
-            const command = textArr[0];
-
-            if(textArr.length > 1) {
-                textArr.shift();
-            }
-
-            return {
-                command:command,
-                text:textArr.join(" "),
-            };
-
-        }
-
-        return;
+        return numbers;
 
     }
 
     // Get commands from message and process them
-    public async _Commands(message:Discord.Message) {
+    public GetCommand(message:Discord.Message) {
 
         if(message.content.startsWith("!") || message.content.startsWith(".")) {
 
-            const text = message.content.slice(1);
+            let text = message.content.slice(1);
+            let textArr = text.split(" ");
 
-            let commandOptions = text.split(" ");
-            const command = commandOptions[0];
-            if(commandOptions.length > 1) {
-                commandOptions.shift();
-            }
+            if(textArr.length > 0) {
 
+                let Command:Types.DiscordModelMessage.CommandModel = {
+                    string:textArr[0],
+                };
 
-            
-            // NEWS COMMAND
-            // reddit get for news top 3
-            if(command.toLowerCase() === "news") {
+                textArr.shift();
+                Command.options = textArr;
 
-                if(!this.UserRoles.includes("Admin") && !this.UserRoles.includes("Mod") && !this.UserRoles.includes("News")) return;
+                return Command;
 
             }
-
-            // POLL COMMAND
-            if(command.toLowerCase() === "poll") {
-
-                if(!this.UserRoles.includes("Admin") && !this.UserRoles.includes("Mod") && !this.UserRoles.includes("Poll")) return;
-
-                let pollTime:number = 86400000;
-                let pollString:string;
-
-                pollString = commandOptions.join(" ");
-                if(!pollString.endsWith("?")) {
-
-                    await message.channel.send(`${message.member.user}, your poll must end with a '?'`);
-                    return;
-
-                }
-
-            }
-
-
-
-
-            if(["warn"].includes(command)) {}
 
         }
+
+        return;
 
     }
 

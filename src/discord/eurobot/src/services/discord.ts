@@ -58,7 +58,7 @@ export class DiscordFactory {
 
         return await db.q(`
         
-            SELECT * FROM user_warnings 
+            SELECT * FROM discord_user_warnings 
             WHERE user_id = ?
             AND dt > ?
         
@@ -70,7 +70,7 @@ export class DiscordFactory {
 
         return await db.q(`
         
-            INSERT INTO user_warnings
+            INSERT INTO discord_user_warnings
             SET ?
 
         `,[{
