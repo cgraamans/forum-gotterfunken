@@ -4,21 +4,21 @@ export namespace DiscordModelNews {
 
     export interface NewsModel {
 
-        subreddit?:Submission[];
-        twitter?:any[];
-        row?:NewsModelRow;
-        key:string;
+        subreddit?:Submission[],
+        twitter?:any[],
+        row?:NewsModelRow,
+        key:string
 
     }
 
     export interface NewsModelRow {
 
-        key:string;
-        name?:string;
-        subreddit?:string;
-        twitter_list?:string;
-        twitter?:string;
-        url?:string;
+        key:string,
+        name?:string,
+        subreddit?:string,
+        twitter_list?:string,
+        twitter?:string,
+        url?:string
 
     }
 
@@ -26,11 +26,24 @@ export namespace DiscordModelNews {
 
 export namespace DiscordModelPoll {
 
-    export interface PollModelFilteredOptions {
-        channels:string[];
-        numbers?:number[];
-        times:number[];
-        filtered:string[];
+    export interface Poll {
+
+        author:string,
+        channel:string,
+        end:number,
+        start:number
+        text:string,
+        message?:string,
+
+        results?:DiscordModelPoll.PollResults
+    }
+
+    export interface PollResults {
+
+        up:string[],
+        down:string[],
+        shrug:string[]
+
     }
 
 }
@@ -38,10 +51,8 @@ export namespace DiscordModelPoll {
 export namespace DiscordModelMessage {
 
     export interface CommandModel {
-
-        string:string;
-        options?:string[];
-
+        string:string,
+        options?:string[]
     }
 
 }

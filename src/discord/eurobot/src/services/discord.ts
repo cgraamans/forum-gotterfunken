@@ -1,7 +1,6 @@
 import {db} from "./db";
 import Discord from "discord.js";
 
-
 export class DiscordFactory {
 
     private static instance:DiscordFactory;

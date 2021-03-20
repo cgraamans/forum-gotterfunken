@@ -227,7 +227,7 @@ const run = async ()=>{
                 if(!ModelMessage.UserRoles.includes("Admin") && !ModelMessage.UserRoles.includes("Mod")) return;
 
                 const ModelPoll = new ModelPollObj();
-                const post = ModelPoll.post(command,message);
+                const post = await ModelPoll.post(command,message);
 
                 // if(poll) {
 

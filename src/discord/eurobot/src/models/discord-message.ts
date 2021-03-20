@@ -8,9 +8,9 @@ export class DiscordModelMessage {
 
     public UserRoles:string[] = [];
 
-    constructor(message:Discord.Message) {
+    public message:Discord.Message;
 
-        let that = this;
+    constructor(message:Discord.Message) {
 
         for(let role in ConfDiscord.Roles.User) {
 
@@ -21,6 +21,8 @@ export class DiscordModelMessage {
             });
 
         }
+
+        this.message = message;
 
     }
 
@@ -82,6 +84,13 @@ export class DiscordModelMessage {
 
     }
 
+    isImage(str:string){
+        const imageLink = str.split('.');
+        const image = /(jpg|jpeg|png|gif)/gi.test(imageLink[imageLink.length - 1]);
+        if (!image) return false;
+        return true;
+    }
+
     public CommandGetOptionsTime(options:string[]) {
 
         let times:number[] = [];
@@ -105,7 +114,7 @@ export class DiscordModelMessage {
         options.forEach((section:string,idx:number)=>{
 
             const matchedChannel = section.match(MessageMentions.CHANNELS_PATTERN);
-            if(matchedChannel) 
+            if(matchedChannel && !section.startsWith("/"))
                 channels.push(section.slice(2,-1));
 
         });
