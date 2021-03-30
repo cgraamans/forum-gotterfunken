@@ -1,4 +1,5 @@
 import { Submission } from 'snoowrap';
+import Discord from 'discord.js';
 
 export namespace DiscordModelNews {
 
@@ -7,7 +8,7 @@ export namespace DiscordModelNews {
         subreddit?:Submission[],
         twitter?:any[],
         row?:NewsModelRow,
-        key:string
+        key?:string
 
     }
 
@@ -33,16 +34,32 @@ export namespace DiscordModelPoll {
         end:number,
         start:number
         text:string,
-        message?:string,
 
-        results?:DiscordModelPoll.PollResults
+        message?:string,
+        results?:PollResultTotals
+        user?:Discord.User
+
     }
 
     export interface PollResults {
 
-        up:string[],
-        down:string[],
-        shrug:string[]
+        totals:PollResultTotals
+        up?:string[],
+        down?:string[],
+        shrug?:string[]
+
+    }
+
+    export interface PollResultTotals {
+            "up":number,
+            "down":number,
+            "shrug":number,
+    }
+
+    export interface PollResultDBTotal {
+
+        vote:string,
+        num:number
 
     }
 

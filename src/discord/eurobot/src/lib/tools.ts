@@ -149,6 +149,12 @@ export class ToolBox {
     
     }
 
+    toPercent(num:number, total:number) {
+
+        return Math.round(num/(total/100));
+
+    }
+
 }
 
 export const Tools = new ToolBox();

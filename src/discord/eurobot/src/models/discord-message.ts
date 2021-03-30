@@ -84,7 +84,7 @@ export class DiscordModelMessage {
 
     }
 
-    isImage(str:string){
+    public isImage(str:string){
         const imageLink = str.split('.');
         const image = /(jpg|jpeg|png|gif)/gi.test(imageLink[imageLink.length - 1]);
         if (!image) return false;
@@ -135,6 +135,20 @@ export class DiscordModelMessage {
         });
 
         return numbers;
+
+    }
+
+    public CommandOptionsFilter(options:string[]) {
+
+        let clean = options.filter(option=>{
+            return !Tools.stringDateSMHDToTime(option);
+        })
+
+        clean = clean.filter(option=>{
+            return !(option.match(Discord.MessageMentions.CHANNELS_PATTERN) && !option.startsWith("/"));
+        });
+
+        return clean;
 
     }
 

@@ -1,5 +1,6 @@
 import {db} from "../services/db";
 import Discord from "discord.js";
+import {DiscordModelMessage} from "./discord-message"; 
 import {RedditService} from "../services/reddit";
 import {Tools} from '../lib/tools';
 
@@ -15,14 +16,27 @@ export class DiscordModelNews {
 
     }
 
-    public async get(key:string = "eunews") {
+    public async get(command:Types.DiscordModelMessage.CommandModel,message:Discord.Message) {
 
-        let rtn:Types.DiscordModelNews.NewsModel = {key:key};
+        let rtn:Types.DiscordModelNews.NewsModel = {};
+        const ModelMessage = new DiscordModelMessage(message)
+
+        const channels = ModelMessage.CommandGetOptionsChannels(command.options);
+        if(channels && channels.length > 0) {
+            rtn.key = channels[0];
+        }
+        
+        const filter = ModelMessage.CommandOptionsFilter(command.options);
+        if(filter.length > 0) {
+            rtn.key = filter[0];
+        }
+
+        if(!rtn.key) rtn.key = "eunews";
 
         let keyDefList:Types.DiscordModelNews.NewsModelRow[] = await db.q(`
                 SELECT * FROM discord_news WHERE \`key\` = ?
             `,
-            [key.toLowerCase()])
+            [rtn.key.toLowerCase()])
             .catch(e=>{console.log(e)});
 
         if(keyDefList.length > 0) {

@@ -4,26 +4,15 @@ import {DiscordModelMessage} from "./discord-message";
 import {Tools} from "../lib/tools";
 import * as Types from "../types/index.d";
 import { db } from "../services/db";
+import { VoteableContent } from "snoowrap";
 
 export class DiscordModelPoll {
 
 
+    public PromiseEmojiList:Promise<any>[] = [];
+
     constructor() {
 
-
-    }
-
-    private CommandOptionsFilter(options:string[]) {
-
-        options = options.filter(option=>{
-            return !Tools.stringDateSMHDToTime(option);
-        })
-
-        options = options.filter(option=>{
-            return !option.match(Discord.MessageMentions.CHANNELS_PATTERN) || !option.startsWith("/");
-        });
-
-        return options;
 
     }
 
@@ -40,15 +29,87 @@ export class DiscordModelPoll {
 
     }
 
-    get() {
+    async get(message:Discord.Message) {
 
-        // fetchedMessages.find(m => (m.embeds.length > 0) && m.embeds[0].footer && m.embeds[0].footer.text.startsWith(emoji) && m.embeds[0].footer.text.endsWith(message.id));
+        let pollArray = await db.q(`SELECT * FROM discord_polls WHERE message = ?`,[message.id])
+        if(!pollArray || pollArray.length < 1) return;
+
+        let poll = (pollArray[0] as Types.DiscordModelPoll.Poll);
+
+        // Cast to num
+        if(typeof poll.end === 'string') poll.end = parseInt(poll.end);
+        if(typeof poll.start === 'string') poll.start = parseInt(poll.start);
+
+
+        // get User
+        const userObj = message.guild.members.cache.find(x=>x.id === poll.author);
+        if(userObj) poll.user = userObj.user;
+
+        return poll;
 
     }
 
-    update(message:Discord.Message) {
+    async getResultTotals(message:Discord.Message) {
 
+        // Result totals
+        let ResultTotals:Types.DiscordModelPoll.PollResultTotals = {
+            up:0,
+            down:0,
+            shrug:0
+        };
 
+        let pollVoteTotals:Types.DiscordModelPoll.PollResultDBTotal[] = await db.q(`
+            SELECT vote, count(*) as num
+            FROM discord_poll_votes AS DPV
+            WHERE message = ?
+            GROUP BY vote ORDER BY num ASC
+        `,[message.id]);
+
+        pollVoteTotals.forEach(voteTotal=>{
+            for(const i in ResultTotals){
+
+                if(voteTotal.vote === i) (<any>ResultTotals)[i] = voteTotal.num;
+
+            }
+
+        });
+
+        return ResultTotals;
+
+    }
+
+    async update(reaction:Discord.MessageReaction,user:Discord.User|Discord.PartialUser) {
+
+        let VoteDir:string;
+
+        if(reaction.emoji.name === "👎") VoteDir = "down";
+        if(reaction.emoji.name === "👍") VoteDir = "up";
+        if(reaction.emoji.name === "🤷") VoteDir = "shrug";
+
+        if(VoteDir) {
+
+            await db.q(`
+            
+                        INSERT INTO discord_poll_votes(message,member,vote,dt)
+                        VALUES (?,?,?,?)
+                        ON DUPLICATE KEY UPDATE vote = ?, dt = ?;
+
+                    `,[
+                        reaction.message.id,
+                        user.id,
+                        VoteDir,
+                        (new Date().getTime()),
+                        VoteDir,
+                        (new Date().getTime())
+                    ]
+                )
+                .catch(e=>{
+                    console.log(e);
+                });
+
+        }
+        
+        return VoteDir;
 
     }
 
@@ -64,9 +125,9 @@ export class DiscordModelPoll {
                 const ModelMessage = new DiscordModelMessage(message)
 
                 // Filter
-                const filteredOptions = this.CommandOptionsFilter(command.options);
-                if(filteredOptions.length < 1 || !filteredOptions[command.options.length-1].endsWith("?")) {
-                    // polls must have some content
+                const filteredOptions = ModelMessage.CommandOptionsFilter(command.options);
+
+                if(filteredOptions && (filteredOptions.length < 1 || (filteredOptions.length > 0 && !filteredOptions[filteredOptions.length-1].endsWith("?")))) {
                     message.channel.send(`Polls must have a question and end in a \`?\``);
                     return;
                 }
@@ -91,13 +152,11 @@ export class DiscordModelPoll {
 
                 // set poll in db
                 let poll:Types.DiscordModelPoll.Poll = {
-
                     author:message.author.id,                    
                     channel:Channel.id,
                     end:(new Date().getTime()+86400000),
                     start:(new Date().getTime()),
-                    text:filteredOptions.join(" "),
-
+                    text:filteredOptions.join(" ")
                 };
     
                 const timeOptions = ModelMessage.CommandGetOptionsTime(command.options);
@@ -105,12 +164,16 @@ export class DiscordModelPoll {
                     poll.end = (Math.round((new Date().getTime()+timeOptions[timeOptions.length-1])/1000));
                 }
 
-                let post = this.toRich(message,poll);
                 const channel = message.client.channels.cache.find(channel => channel.id === poll.channel)
-                if(post && channel && channel.type === "text" && !ConfDiscord.Channels.Ignore.includes(channel.id)){
+                if(channel && channel.type === "text" && !ConfDiscord.Channels.Ignore.includes(channel.id)){
+
+                    let post = this.toRich(message,poll);
+                    if(!post) return;
                     
                     let sentMessage = await (channel as Discord.TextChannel).send(post);
                     poll.message = sentMessage.id;
+
+                    sentMessage.edit(this.toRich(message,poll));
                 
                     const res = await db.q(`
                         INSERT INTO discord_polls SET ?
@@ -132,28 +195,75 @@ export class DiscordModelPoll {
 
     // Convert poll to rich output
     // toRich
-    public toRich(message:Discord.Message,poll:Types.DiscordModelPoll.Poll) {
+    public toRich(message:Discord.Message,poll:Types.DiscordModelPoll.Poll,ResultTotals?:Types.DiscordModelPoll.PollResultTotals) {
 
         const ModelMessage = new DiscordModelMessage(message)
 
+        // Poll result totals in percent
+        let totalResults:number = 0;
+        let pct:Types.DiscordModelPoll.PollResultTotals = {
+            shrug:0,
+            up:0,
+            down:0
+        }
+
+        let results:Types.DiscordModelPoll.PollResultTotals = {
+            shrug:0,
+            up:0,
+            down:0
+        };
+        let user:Discord.User = message.author;
+
+        if(poll.user) user = poll.user;
+        if(ResultTotals) results = ResultTotals;
+
+        for(let i in results) {
+            totalResults += (<any>results)[i];
+        }
+
+        if(totalResults > 0) {
+
+            for(let i in results) {
+                (<any>pct)[i] = Tools.toPercent((<any>results)[i],totalResults);
+            }                
+
+        }
+
+        // Set % fields
+        let fields:Discord.EmbedFieldData[] = [{
+                name: "\u200B",
+                value: `${pct.up}% 👍`,
+                inline: true
+            },
+            {
+                name: "\u200B",
+                value: `${pct.down}% 👎`,
+                inline: true
+            },
+            {
+                name: "\u200B",
+                value: `${pct.shrug}% 🤷`,
+                inline: true
+            }];
+        
+        // Set author
+        
+
         const embed = new Discord.MessageEmbed()
-            .setTitle(`🇪🇺 Eurobot Poll`)
+            .setTitle(`Poll`)
 			.setColor(0xFFCC00)
-			.setAuthor(message.author.tag, message.author.avatarURL())
-            .setTimestamp(new Date())
-			.setFooter(`👍 ${poll.results ? poll.results.up.length : 0} 👎 ${poll.results ? poll.results.down.length : 0} 🤷 ${poll.results ? poll.results.shrug.length : 0} | Ends: ${Tools.dateTimeToHHss((new Date(poll.end)))}| ${message.id}`)
+			.setAuthor(user.tag, user.avatarURL())
+			.setFooter(`👍 ${results.up} 👎 ${results.down} 🤷 ${results.shrug} | Ends ${Tools.dateTimeToHHss((new Date(poll.end)))} | Poll ${poll.message}`)
 			.setURL(message.url)
-            .setDescription(poll.text)
+            .setDescription(`\n\n${poll.text}\n\n`)
+            .addFields(fields);
 
             if(message.attachments.array().length > 0 && ModelMessage.isImage(message.attachments.array()[0].url)) {
                 const image = message.attachments.array()[0].url;
                 embed.setImage(image);
             }
     
-
         return embed;
-
-
 
     } // toRich
 

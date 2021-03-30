@@ -15,10 +15,11 @@ const run = async ()=>{
 
     DiscordService.client.on("message",async (message:Discord.Message)=>{
         
-        if(message.member.user.bot) return;
 
         const ModelMessage = new ModelMessageObj(message);
         if(message.channel) {
+
+            if(message.member.user.bot) return;
 
             // BLACKLIST
             // Blacklisted Words and Phrases
@@ -106,7 +107,7 @@ const run = async ()=>{
             } // EU Flag React
 
             // FREUDE React
-            if(message.content.toLowerCase().endsWith("freude")) {
+            if(message.content.toLowerCase().match(/freude[!?]*$/gm)) {
 
                 if(ConfDiscord.Channels.Ignore.includes(message.channel.id)) return;
 
@@ -207,7 +208,7 @@ const run = async ()=>{
             if(command.string === "news") {
 
                 const ModelNews = new ModelNewsObj();
-                let news = await ModelNews.get();
+                let news = await ModelNews.get(command,message);
 
                 if(news) {
 
@@ -227,14 +228,7 @@ const run = async ()=>{
                 if(!ModelMessage.UserRoles.includes("Admin") && !ModelMessage.UserRoles.includes("Mod")) return;
 
                 const ModelPoll = new ModelPollObj();
-                const post = await ModelPoll.post(command,message);
-
-                // if(poll) {
-
-                //     const embedObj = ModelPoll.toRich(poll);
-                //     // if(embed)
-
-                // }
+                await ModelPoll.post(command,message);
 
             }
 
@@ -244,47 +238,42 @@ const run = async ()=>{
 
     });
 
-    DiscordService.client.on("messageReactionAdd",async (reaction:Discord.MessageReaction, user:Discord.User|Discord.PartialUser)=>{
+    DiscordService.client.on("messageReactionAdd",async (reaction:Discord.MessageReaction, user:Discord.User)=>{
 
         if(user.bot) return;
 
         // Fetch reaction message if not cached
         if (reaction.message.partial) await reaction.message.fetch();
 
+        if(reaction.message.embeds.length < 1) return;
+
         // Has bot action footer
-        if((reaction.message.embeds.length > 0) && reaction.message.embeds[0].footer && reaction.message.embeds[0].footer.text.endsWith(reaction.message.id)) {
+        if(reaction.message.embeds[0].footer && reaction.message.embeds[0].footer.text.endsWith("Poll "+reaction.message.id) && ["👍","👎","🤷"].includes(reaction.emoji.name)) {
 
             const ModelPoll = new ModelPollObj();
-            const update = ModelPoll.update(reaction.message);
-            // if(update) {
-            //     reaction.message
-            //     // richMsg
+            const update = await ModelPoll.update(reaction,user);
+            if(update) {
 
-            // }
+                ModelPoll.PromiseEmojiList.push(reaction.message.reactions.cache.find(r => r.emoji.name === reaction.emoji.name).users.remove(user));
+
+                const poll = await ModelPoll.get(reaction.message);
+                const totals = await ModelPoll.getResultTotals(reaction.message);
+
+                await reaction.message.edit(ModelPoll.toRich(reaction.message,poll,totals));
+
+            }
+            
         }
 
+        return;
 
     });
 
-    DiscordService.client.on("messageReactionRemove",async (reaction:Discord.MessageReaction)=>{
+    DiscordService.client.on("messageReactionRemove",async (reaction:Discord.MessageReaction, user:Discord.User)=>{
 
-        if(reaction.message.member.user.bot) return;
+        if(user.bot) return;
 
-        // Fetch reaction message if not cached
-        if (reaction.message.partial) await reaction.message.fetch();
-
-        // Has bot action footer
-        if((reaction.message.embeds.length > 0) && reaction.message.embeds[0].footer && reaction.message.embeds[0].footer.text.endsWith(reaction.message.id)) {
-
-            const ModelPoll = new ModelPollObj();
-            const update = ModelPoll.update(reaction.message);
-            // if(update) {
-            //     reaction.message
-            //     // richMsg
-
-            // }
-
-        }
+        return;
 
     });
 
@@ -296,5 +285,4 @@ const run = async ()=>{
 
 };
 
-// console.log(options);
 run().catch(e=>{console.log(e);});
