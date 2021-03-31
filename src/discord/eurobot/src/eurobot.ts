@@ -1,13 +1,15 @@
 import ConfDiscord from "./conf/discord.json";
 import Discord from "discord.js";
+
 import {DiscordModelCalendar as ModelCalendarObj} from "./models/discord-calendar";
 import {DiscordModelMessage as ModelMessageObj} from "./models/discord-message";
 import {DiscordModelPoll as ModelPollObj} from "./models/discord-poll";
 import {DiscordModelNews as ModelNewsObj} from "./models/discord-news";
 
 import {DiscordService} from "./services/discord";
-
 import {Tools} from "./lib/tools";
+
+import TwitterService from "./services/twitter";
 
 const run = async ()=>{
 
@@ -265,19 +267,31 @@ const run = async ()=>{
             
         }
 
-        return;
+        if(["📣"].includes(reaction.emoji.name)) {
 
-    });
+            // if user is authorized
 
-    DiscordService.client.on("messageReactionRemove",async (reaction:Discord.MessageReaction, user:Discord.User)=>{
+            // if text of message has http or https
 
-        if(user.bot) return;
+            // if http or https hasn't been posted yet
+
+            // if has image
+
+            // if character count is exceeded
+
+            // post()
+
+        }
+
+
 
         return;
 
     });
 
     DiscordService.client.on("guildMemberAdd",async (member:Discord.GuildMember)=> {
+
+        return;
 
     });
 
