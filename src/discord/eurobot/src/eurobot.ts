@@ -5,18 +5,19 @@ import {DiscordModelCalendar as ModelCalendarObj} from "./models/discord-calenda
 import {DiscordModelMessage as ModelMessageObj} from "./models/discord-message";
 import {DiscordModelPoll as ModelPollObj} from "./models/discord-poll";
 import {DiscordModelNews as ModelNewsObj} from "./models/discord-news";
+import {DiscordModelTwitter as ModelTwitterObj} from "./models/discord-twitter";
+import {DiscordModelUser as ModelUserObj} from "./models/discord-user";
 
 import {DiscordService} from "./services/discord";
 import {Tools} from "./lib/tools";
-
-import TwitterService from "./services/twitter";
 
 const run = async ()=>{
 
     console.log(`START: ${new Date()}`);
 
     DiscordService.client.on("message",async (message:Discord.Message)=>{
-        
+
+        const User = new ModelUserObj(message);
 
         const ModelMessage = new ModelMessageObj(message);
         if(message.channel) {
@@ -159,7 +160,7 @@ const run = async ()=>{
             // MUTE command
             if(command.string === "mute") {
 
-                if(!ModelMessage.UserRoles.includes("Admin") && !ModelMessage.UserRoles.includes("Mod")) return;
+                if(!User.authorize("Admin") || !User.authorize("Mod")) return;
 
                 if(message.mentions && message.mentions.members) {
 
@@ -190,7 +191,7 @@ const run = async ()=>{
             // UNMUTE command
             if(command.string === "unmute") {
 
-                if(!ModelMessage.UserRoles.includes("Admin") && !ModelMessage.UserRoles.includes("Mod")) return;
+                if(!User.authorize("Admin") || !User.authorize("Mod")) return;
 
                 const mute = message.guild.roles.cache.find(role=>role.name.toLowerCase() === "mute");
 
@@ -208,6 +209,8 @@ const run = async ()=>{
 
             // NEWS command
             if(command.string === "news") {
+
+                if(!User.authorize("News") || !User.authorize("Admin") || !User.authorize("Mod")) return;
 
                 const ModelNews = new ModelNewsObj();
                 let news = await ModelNews.get(command,message);
@@ -227,7 +230,7 @@ const run = async ()=>{
 
             if(command.string === "poll") {
 
-                if(!ModelMessage.UserRoles.includes("Admin") && !ModelMessage.UserRoles.includes("Mod")) return;
+                if(!User.authorize("Poll") || !User.authorize("Admin") || !User.authorize("Mod")) return;
 
                 const ModelPoll = new ModelPollObj();
                 await ModelPoll.post(command,message);
@@ -247,10 +250,8 @@ const run = async ()=>{
         // Fetch reaction message if not cached
         if (reaction.message.partial) await reaction.message.fetch();
 
-        if(reaction.message.embeds.length < 1) return;
-
         // Has bot action footer
-        if(reaction.message.embeds[0].footer && reaction.message.embeds[0].footer.text.endsWith("Poll "+reaction.message.id) && ["👍","👎","🤷"].includes(reaction.emoji.name)) {
+        if(reaction.message.embeds && reaction.message.embeds.length > 0 && reaction.message.embeds[0].footer && reaction.message.embeds[0].footer.text.endsWith("Poll "+reaction.message.id) && ["👍","👎","🤷"].includes(reaction.emoji.name)) {
 
             const ModelPoll = new ModelPollObj();
             const update = await ModelPoll.update(reaction,user);
@@ -267,19 +268,20 @@ const run = async ()=>{
             
         }
 
+
         if(["📣"].includes(reaction.emoji.name)) {
 
-            // if user is authorized
+            const User = new ModelUserObj(reaction.message,user);
 
-            // if text of message has http or https
+            if(!User.authorize("Twitter") || !User.authorize("Admin") || !User.authorize("Mod")) return;
 
-            // if http or https hasn't been posted yet
+            const ModelTwitter = new ModelTwitterObj();
+            const post = await ModelTwitter.post(reaction.message);
+            if(post) {
 
-            // if has image
+                // await reaction.
 
-            // if character count is exceeded
-
-            // post()
+            }
 
         }
 

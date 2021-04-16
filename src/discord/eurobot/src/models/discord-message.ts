@@ -6,21 +6,9 @@ import * as Types from "../types/index.d"
 
 export class DiscordModelMessage {
 
-    public UserRoles:string[] = [];
-
     public message:Discord.Message;
 
     constructor(message:Discord.Message) {
-
-        for(let role in ConfDiscord.Roles.User) {
-
-            (ConfDiscord.Roles.User as any)[role].forEach((id:string)=>{
-
-                if(message.member.roles.cache.find(r=>r.id === id) && !this.UserRoles.includes(role)) this.UserRoles.push(role);
-
-            });
-
-        }
 
         this.message = message;
 
@@ -38,7 +26,7 @@ export class DiscordModelMessage {
             if(!emoji.available && limit < 10) {
                 limit++;
                 return await this.MessageGuildEmoji(message,null,limit);
-            }   
+            }
 
             return emoji;
 

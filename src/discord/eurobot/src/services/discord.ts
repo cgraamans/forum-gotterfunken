@@ -68,7 +68,7 @@ export class DiscordFactory {
     public async UserWarningAdd(user:Discord.User, reason:string|null = null) {
 
         return await db.q(`
-        
+
             INSERT INTO discord_user_warnings
             SET ?
 

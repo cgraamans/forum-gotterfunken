@@ -18,7 +18,7 @@ export class DiscordModelNews {
 
     public async get(command:Types.DiscordModelMessage.CommandModel,message:Discord.Message) {
 
-        let rtn:Types.DiscordModelNews.NewsModel = {};
+        let rtn:Types.DiscordModelNews.NewsModel = {key:"eunews"};
         const ModelMessage = new DiscordModelMessage(message)
 
         const channels = ModelMessage.CommandGetOptionsChannels(command.options);
@@ -30,8 +30,6 @@ export class DiscordModelNews {
         if(filter.length > 0) {
             rtn.key = filter[0];
         }
-
-        if(!rtn.key) rtn.key = "eunews";
 
         let keyDefList:Types.DiscordModelNews.NewsModelRow[] = await db.q(`
                 SELECT * FROM discord_news WHERE \`key\` = ?
