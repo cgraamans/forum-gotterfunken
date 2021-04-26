@@ -1,94 +1,48 @@
-import ConfDiscord from "../conf/discord.json";
 import Discord from "discord.js";
-
-import {db} from "../services/db";
-
+import * as FileType from "file-type"
 import * as https from "https";
 
 import {TwitterService} from "../services/twitter";
 import {Tools} from '../lib/tools';
 
 import * as Types from "../types/index.d"
-import { finished } from "node:stream";
+
 
 export class DiscordModelTwitter {
-
-    public maxListSize:number;
 
     constructor() {
 
     }
 
-    // public async get(command:Types.DiscordModelMessage.CommandModel,message:Discord.Message) {
-
-    //     let rtn:Types.DiscordModelNews.NewsModel = {};
-    //     const ModelMessage = new DiscordModelMessage(message)
-
-    //     const channels = ModelMessage.CommandGetOptionsChannels(command.options);
-    //     if(channels && channels.length > 0) {
-    //         rtn.key = channels[0];
-    //     }
-        
-    //     const filter = ModelMessage.CommandOptionsFilter(command.options);
-    //     if(filter.length > 0) {
-    //         rtn.key = filter[0];
-    //     }
-
-    //     if(!rtn.key) rtn.key = "eunews";
-
-    //     let keyDefList:Types.DiscordModelNews.NewsModelRow[] = await db.q(`
-    //             SELECT * FROM discord_news WHERE \`key\` = ?
-    //         `,
-    //         [rtn.key.toLowerCase()])
-    //         .catch(e=>{console.log(e)});
-
-    //     if(keyDefList.length > 0) {
-
-    //         rtn.row = keyDefList[0];
-
-    //         // Process Subreddit Column Value
-    //         if(rtn.row.subreddit) {
-
-    //             let hot = await RedditService.client.getHot(rtn.row.subreddit,{limit:this.maxListSize+2})
-    //                 .catch(e=>{console.log(e)});
-
-    //             if(hot){
-
-    //                 rtn.subreddit = hot;
-                
-    //             }
-
-    //         }
-
-    //     }
-
-    //     return rtn;
-
-    // }
-
-    // Convert news to rich output
-    // toRich
-
-    private async getFile(url:string) {
+    private async getFile(url:string):Promise<Buffer> {
 
         return new Promise((resolve,reject)=>{
 
-            let data:any;
+            let data:any[] = []
 
-            const request = https.get(url, response => {
-                if (response.statusCode === 200) {
-                    response.pipe(data);
+            https.get(url, (res) => {
+
+                if (res.statusCode === 200) {
+
+                    res.on("data",chunk=>{
+                        data.push(chunk);
+                    });
+
+                    res.on("end",()=>{
+                        const buffer:Buffer = Buffer.concat(data);
+                        resolve(buffer);
+                    });
+
+                    res.on("error",err=>{
+                        reject(err);
+                    });
+
                 } else {
-                    reject(`Server responded with ${response.statusCode}: ${response.statusMessage}`);
+
+                    reject(`Server responded with ${res.statusCode}: ${res.statusMessage}`);
+
                 }
-            });
 
-            request.on("error",err=>{
-                reject(err.message);
-            });
-
-            request.on("finish",()=>{
-                resolve(data);
             });
 
         });
@@ -97,26 +51,41 @@ export class DiscordModelTwitter {
 
     public async post(message:Discord.Message) {
 
-        let media:any = [];
+        let media:Types.DiscordModelTwitter.MediaObj[] = [];
 
         if(message.attachments) {
 
-            message.attachments.forEach(attachment=>{
+            let urls:string[] = [];
 
-                const file = this.getFile(attachment.url)
+            message.attachments.forEach(attachment=>{
+                urls.push(attachment.url);
+            });
+
+            await Tools.asyncForEach(urls,async (url:string)=>{
+
+                const file = await this.getFile(url)
                                 .catch(e=>{console.log(e)});
 
-                console.log(file);
+                // TODO:
+                // 
+
+                if(file) {
+
+                    console.log(file);
+                    console.log(Buffer.byteLength(file));
+                    console.log(await FileType.fromBuffer(file));
+                }
+
+                return;
+
+                // media.push({size:"",type:"",data:null});
 
             });
     
         }
         
-        return TwitterService.post(message.content,media);
+        return await TwitterService.post(message.content,media);
 
     }
-
-
-    
 
 }

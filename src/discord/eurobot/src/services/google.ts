@@ -1,6 +1,6 @@
+import privatekey from "../conf/google/Eurobot-Calendar-1c54f0456b16.json"
 import {google} from "googleapis";
 import {calendar as CalendarOptions} from "../conf/google/options.json"
-import privatekey from "../conf/google/Eurobot-Calendar-1c54f0456b16.json"
 
 export class GoogleFactory {
 

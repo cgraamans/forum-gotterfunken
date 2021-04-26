@@ -1,7 +1,6 @@
-import ConfDiscord from "../conf/discord.json";
-import Discord, { MessageMentions } from "discord.js";
+import Discord from "discord.js";
+import {DiscordService} from "../services/discord"
 import { Tools } from "../lib/tools";
-
 import * as Types from "../types/index.d"
 
 export class DiscordModelMessage {
@@ -44,17 +43,15 @@ export class DiscordModelMessage {
     // Default bot textual reactions
     public async React(message:Discord.Message, type:string = "default") {
 
-        if (Math.round(Math.random()) === 1) {
-            
-            const randomNumber = Math.floor(ConfDiscord.Reactions.default.length * Math.random());
-            const reactionMsg = ConfDiscord.Reactions.default[randomNumber];
+        const filteredReactions = DiscordService.Config.Reactions.filter(reaction=>{
+            return reaction.category === type;
+        });
 
-            return reactionMsg;
+        const randomNumber = Math.floor(filteredReactions.length * Math.random());
+        const reactionMsg = filteredReactions[randomNumber];
+
+        return reactionMsg;
     
-        }
-        
-        return "";
-        
     }
 
     // Check the BannedWords list
@@ -62,9 +59,9 @@ export class DiscordModelMessage {
 
         let rtnBool:boolean = false;
 
-        ConfDiscord.BannedWords.forEach(bannedWord=>{
+        DiscordService.Config.BadWords.forEach(BadWords=>{
 
-            if(text.toLowerCase().includes(bannedWord)) rtnBool = true;
+            if(text.toLowerCase().includes(BadWords)) rtnBool = true;
 
         });
 
@@ -72,11 +69,50 @@ export class DiscordModelMessage {
 
     }
 
+    // Routing foreign announcement channels to local announcement channels
+    public Route() {
+
+
+
+    }
+
+    // isImage by last string segment
     public isImage(str:string){
         const imageLink = str.split('.');
         const image = /(jpg|jpeg|png|gif)/gi.test(imageLink[imageLink.length - 1]);
         if (!image) return false;
         return true;
+    }
+
+    //
+    // Command processing and filtering
+    //
+
+    // Get commands from message and process them
+    public GetCommand(message:Discord.Message) {
+
+        if(message.content.startsWith("!") || message.content.startsWith(".")) {
+
+            let text = message.content.slice(1);
+            let textArr = text.split(" ");
+
+            if(textArr.length > 0) {
+
+                let Command:Types.DiscordModelMessage.CommandModel = {
+                    string:textArr[0],
+                };
+
+                textArr.shift();
+                Command.options = textArr;
+
+                return Command;
+
+            }
+
+        }
+
+        return;
+
     }
 
     public CommandGetOptionsTime(options:string[]) {
@@ -101,7 +137,7 @@ export class DiscordModelMessage {
 
         options.forEach((section:string,idx:number)=>{
 
-            const matchedChannel = section.match(MessageMentions.CHANNELS_PATTERN);
+            const matchedChannel = section.match(Discord.MessageMentions.CHANNELS_PATTERN);
             if(matchedChannel && !section.startsWith("/"))
                 channels.push(section.slice(2,-1));
 
@@ -140,30 +176,9 @@ export class DiscordModelMessage {
 
     }
 
-    // Get commands from message and process them
-    public GetCommand(message:Discord.Message) {
+    public toRich(options?:any) {
 
-        if(message.content.startsWith("!") || message.content.startsWith(".")) {
-
-            let text = message.content.slice(1);
-            let textArr = text.split(" ");
-
-            if(textArr.length > 0) {
-
-                let Command:Types.DiscordModelMessage.CommandModel = {
-                    string:textArr[0],
-                };
-
-                textArr.shift();
-                Command.options = textArr;
-
-                return Command;
-
-            }
-
-        }
-
-        return;
+        
 
     }
 

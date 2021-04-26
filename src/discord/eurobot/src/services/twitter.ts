@@ -1,4 +1,6 @@
 import twitter from "twitter";
+import {Tools} from "../lib/tools";
+import * as Types from "../types/index.d";
 
 export class TwitterFactory {
 
@@ -26,26 +28,37 @@ export class TwitterFactory {
         });
 
         // Test connection on init
-        const params = {screen_name: 'nodejs'};
-        this.client.get('statuses/user_timeline', params, function(error) {
-            if (error) throw new Error(error);
+        const params = {screen_name: "cgraamans"};
+        this.client.get("statuses/user_timeline", params, (error)=>{
+            if (error) console.log("Twitter Init Error",error);
         });
 
     }
 
     // post message with media
-    public async post(message:string,media?:{size:string,type:string,data:any}[]) {
+    public async post(message:string,media?:Types.DiscordModelTwitter.MediaObj[]) {
 
-        return;
+        let params = {status:message};
 
         if(media && media.length > 0) {
 
+            await Tools.asyncForEach(media,async (mediaObj:Types.DiscordModelTwitter.MediaObj)=>{
 
+                const init = await this.initUpload(mediaObj.size,mediaObj.type);
+                console.log(init);
+                // TODO: 
+                // chunk
+                // 
+
+            });
 
         }
 
-        return await this.client.post("statuses/update",{status:message})
-            .catch(e=>{console.log(e)});
+        // TEST 
+        return new Promise((resolve:any)=>{resolve()});
+
+        // return await this.client.post("statuses/update",params)
+            // .catch(e=>{console.log(e)});
 
     }
 
@@ -86,11 +99,11 @@ export class TwitterFactory {
     private async makePost (endpoint:string, params:twitter.RequestParams) {
         return new Promise((resolve, reject) => {
             this.client.post(endpoint, params, (error, data) => {
-            if (error) {
-                reject(error);
-            } else {
-                resolve(data);
-            }
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(data);
+                }
             });
         });
     }

@@ -22,10 +22,23 @@ const run = async ()=>{
         const ModelMessage = new ModelMessageObj(message);
         if(message.channel) {
 
-            if(message.member.user.bot) return;
+            //
+            // PRE-PROCESSING
+            //
 
-            // BLACKLIST
-            // Blacklisted Words and Phrases
+            if(message.channel.id === "798198541003522098") {
+
+                console.log(message);
+
+            }
+
+            if(!message.member) return;
+
+            if(message.member.user && message.member.user.bot) return;
+
+            if(DiscordService.Config.Channels.find(ch=>ch.category.toLowerCase() === "ignore" && ch.channel_id === message.channel.id)) return;
+
+            // Bad words and phrases
             if(ModelMessage.BannedPhrases(message.content)) {
 
                 await DiscordService.UserWarningAdd(message.author,'Banned Words');
@@ -58,22 +71,31 @@ const run = async ()=>{
                 message.delete();
                 return;
 
-            } // BLACKLIST
+            }
 
-            // BOT REACT
+            //
+            // REACTIONS
+            //
+
             // Bot Mentions and Bot Username Mentions
             if(message.mentions.has(DiscordService.client.user) || message.content.toLowerCase().includes(DiscordService.client.user.username.toLowerCase())) {
 
-                if(Math.round(Math.random()) < 1) {
+                if(Math.random() < 0.4) {
 
                     let emoji = await ModelMessage.MessageGuildEmoji(message).catch(e=>{throw e});
                     await message.react(emoji.id);
 
                 } else {
 
-                    if(ConfDiscord.Channels.Ignore.includes(message.channel.id)) return;
+                    /// TODO
 
-                    let reaction = await ModelMessage.React(message).catch(e=>{throw e});
+                    let reaction:string;
+
+                    if(Math.random() > 0.8) {
+                        let reactionObj = await ModelMessage.React(message).catch(e=>{throw e});
+                        reaction = reactionObj.reaction;
+                    }
+
                     let emoji = await ModelMessage.MessageGuildEmoji(message).catch(e=>{throw e});
                     
                     let discordMessage = Tools.shuffleArray([reaction,emoji]).join(" ");
@@ -83,48 +105,40 @@ const run = async ()=>{
 
                 return;
 
-            } // BOT REACT
+            }
 
-            // EU Flag React [loveEU]
+            // EU flag React [loveEU]
             if(message.content.toLowerCase().includes("🇪🇺")) {
-
-                if(ConfDiscord.Channels.Ignore.includes(message.channel.id)) return;
 
                 let emoji = await ModelMessage.MessageGuildEmoji(message,"loveEU").catch(e=>{throw e});
                 message.react(emoji.id);
 
                 return;
 
-            } // EU Flag React
+            }
 
-            // keyword react [loveEU]
-            if(message.content.toLowerCase().includes("uschi") || message.content.toLowerCase().includes("sassoli")) {
-
-                if(ConfDiscord.Channels.Ignore.includes(message.channel.id)) return;
+            // keyword react
+            if(message.content.toLowerCase().includes("uschi") || message.content.toLowerCase().includes("sassoli") || message.content.toLowerCase().includes("michel")) {
 
                 let emoji = await ModelMessage.MessageGuildEmoji(message).catch(e=>{throw e});
                 message.react(emoji.id);
 
                 return;
 
-            } // EU Flag React
+            }
 
             // FREUDE React
             if(message.content.toLowerCase().match(/freude[!?]*$/gm)) {
-
-                if(ConfDiscord.Channels.Ignore.includes(message.channel.id)) return;
 
                 let emoji = await ModelMessage.MessageGuildEmoji(message).catch(e=>{throw e});
                 await message.channel.send(`SCHÖNER ${emoji}`);
 
                 return;
 
-            } // FREUDE React
+            }
 
             // GOTTERFUNKEN React
             if(message.content.toLowerCase().endsWith("gotterfunken") || message.content.toLowerCase().endsWith("götterfunken")) {
-
-                if(ConfDiscord.Channels.Ignore.includes(message.channel.id)) return;
 
                 let emoji = await ModelMessage.MessageGuildEmoji(message).catch(e=>{throw e});
                 await message.channel.send(`${emoji}`);
@@ -133,11 +147,15 @@ const run = async ()=>{
 
             }
 
-            // Extract Commands
+            //
+            // COMMANDS
+            //
+            
+            // Extract commands from message
             const command = ModelMessage.GetCommand(message);
             if(!command) return;
 
-            // CALENDAR COMMAND            
+            // CALENDAR command            
             if(command.string === "calendar") {
 
                 const ModelCalendar = new ModelCalendarObj();
@@ -160,7 +178,7 @@ const run = async ()=>{
             // MUTE command
             if(command.string === "mute") {
 
-                if(!User.authorize("Admin") || !User.authorize("Mod")) return;
+                if(!User.authorize("Admin") && !User.authorize("Mod")) return;
 
                 if(message.mentions && message.mentions.members) {
 
@@ -191,7 +209,7 @@ const run = async ()=>{
             // UNMUTE command
             if(command.string === "unmute") {
 
-                if(!User.authorize("Admin") || !User.authorize("Mod")) return;
+                if(!User.authorize("Admin") && !User.authorize("Mod")) return;
 
                 const mute = message.guild.roles.cache.find(role=>role.name.toLowerCase() === "mute");
 
@@ -210,7 +228,7 @@ const run = async ()=>{
             // NEWS command
             if(command.string === "news") {
 
-                if(!User.authorize("News") || !User.authorize("Admin") || !User.authorize("Mod")) return;
+                if(!User.authorize("News") && !User.authorize("Admin") && !User.authorize("Mod")) return;
 
                 const ModelNews = new ModelNewsObj();
                 let news = await ModelNews.get(command,message);
@@ -227,13 +245,37 @@ const run = async ()=>{
             }
 
             // POLL command
-
             if(command.string === "poll") {
 
-                if(!User.authorize("Poll") || !User.authorize("Admin") || !User.authorize("Mod")) return;
+                if(!User.authorize("Poll") && !User.authorize("Admin") && !User.authorize("Mod")) return;
 
                 const ModelPoll = new ModelPollObj();
                 await ModelPoll.post(command,message);
+
+                return;
+
+            }
+
+            // COUNTRY command
+            if(command.string === "country") {
+
+                const RoleObj = await User.toggleRoleCountry(command.options.join(' '));
+                if(RoleObj) {
+
+                    const richEmbed = User.toRichRoleCountry(RoleObj);
+                    if(richEmbed) message.channel.send(richEmbed);
+
+                }
+                return;
+
+            }
+
+            // REGISTER command
+            if(command.string === "register") {
+
+                const registerRole = message.member.roles.cache.find(role=>role.id === "581605959990771725");
+                await message.member.roles.add(registerRole);
+                return;
 
             }
 
@@ -243,12 +285,14 @@ const run = async ()=>{
 
     });
 
-    DiscordService.client.on("messageReactionAdd",async (reaction:Discord.MessageReaction, user:Discord.User)=>{
+    DiscordService.client.on("messageReactionAdd",async (reaction, user)=>{
 
         if(user.bot) return;
 
         // Fetch reaction message if not cached
-        if (reaction.message.partial) await reaction.message.fetch();
+        if (reaction.message.partial) reaction.message = await reaction.message.fetch();
+
+        if(user.partial) user = await user.fetch();
 
         // Has bot action footer
         if(reaction.message.embeds && reaction.message.embeds.length > 0 && reaction.message.embeds[0].footer && reaction.message.embeds[0].footer.text.endsWith("Poll "+reaction.message.id) && ["👍","👎","🤷"].includes(reaction.emoji.name)) {
@@ -257,7 +301,7 @@ const run = async ()=>{
             const update = await ModelPoll.update(reaction,user);
             if(update) {
 
-                ModelPoll.PromiseEmojiList.push(reaction.message.reactions.cache.find(r => r.emoji.name === reaction.emoji.name).users.remove(user));
+                ModelPoll.PromiseEmojiList.push(reaction.message.reactions.cache.find(r => r.emoji.name === reaction.emoji.name).users.remove(user.id));
 
                 const poll = await ModelPoll.get(reaction.message);
                 const totals = await ModelPoll.getResultTotals(reaction.message);
@@ -268,12 +312,13 @@ const run = async ()=>{
             
         }
 
-
         if(["📣"].includes(reaction.emoji.name)) {
 
             const User = new ModelUserObj(reaction.message,user);
 
-            if(!User.authorize("Twitter") || !User.authorize("Admin") || !User.authorize("Mod")) return;
+            if(!User.authorize("Twitter") && !User.authorize("Admin") && !User.authorize("Mod")) return;
+
+            console.log("📣");
 
             const ModelTwitter = new ModelTwitterObj();
             const post = await ModelTwitter.post(reaction.message);
