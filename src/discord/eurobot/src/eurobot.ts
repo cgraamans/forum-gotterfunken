@@ -281,7 +281,16 @@ const run = async ()=>{
                 //TODO RICH EMBED TO CHANNEL
                 const registerRole = message.guild.roles.cache.find(role=>role.id === "581605959990771725");
                 if(registerRole && !message.member.roles.cache.find(r=>r.id === registerRole.id)) {
+
                     await message.member.roles.add(registerRole);
+                    const targetChannel = message.guild.channels.cache.get("257838262943481857") as Discord.TextChannel;
+                    if(targetChannel) {
+
+                        const emoji = await ModelMessage.MessageGuildEmoji(message).catch(e=>{console.log(e)});
+                        await targetChannel.send(`Welcome to Forum Götterfunken, ${message.author} ${emoji}`).catch(e=>{console.log(e)});
+
+                    }
+
                 }
                 return;
 
