@@ -26,11 +26,8 @@ const run = async ()=>{
             // PRE-PROCESSING
             //
 
-            if(message.channel.id === "798198541003522098") {
-
-                console.log(message);
-
-            }
+            const routed = ModelMessage.Route(message);
+            if(routed) return;
 
             if(!message.member) return;
 
@@ -86,8 +83,6 @@ const run = async ()=>{
                     await message.react(emoji.id);
 
                 } else {
-
-                    /// TODO
 
                     let reaction:string;
 
@@ -157,6 +152,8 @@ const run = async ()=>{
 
             // CALENDAR command            
             if(command.string === "calendar") {
+
+                if(!User.authorize("Calendar") && !User.authorize("Admin") && !User.authorize("Mod")) return;
 
                 const ModelCalendar = new ModelCalendarObj();
 
@@ -259,6 +256,8 @@ const run = async ()=>{
             // COUNTRY command
             if(command.string === "country") {
 
+                if(!User.authorize("Country") && !User.authorize("Admin") && !User.authorize("Mod")) return;
+
                 const RoleObj = await User.toggleRoleCountry(command.options.join(' '));
                 if(RoleObj) {
 
@@ -266,6 +265,11 @@ const run = async ()=>{
                     if(richEmbed) message.channel.send(richEmbed);
 
                 }
+
+                // Auto Register for FG
+                const registerRole = message.member.roles.cache.find(role=>role.id === "581605959990771725");
+                if(registerRole) await message.member.roles.add(registerRole);
+
                 return;
 
             }
@@ -273,8 +277,12 @@ const run = async ()=>{
             // REGISTER command
             if(command.string === "register") {
 
-                const registerRole = message.member.roles.cache.find(role=>role.id === "581605959990771725");
-                await message.member.roles.add(registerRole);
+                //TODO REMOVE HARDCODED ID
+                //TODO RICH EMBED TO CHANNEL
+                const registerRole = message.guild.roles.cache.find(role=>role.id === "581605959990771725");
+                if(registerRole && !message.member.roles.cache.find(r=>r.id === registerRole.id)) {
+                    await message.member.roles.add(registerRole);
+                }
                 return;
 
             }
@@ -312,25 +320,21 @@ const run = async ()=>{
             
         }
 
-        if(["📣"].includes(reaction.emoji.name)) {
+        if(["💙"].includes(reaction.emoji.name)) {
 
             const User = new ModelUserObj(reaction.message,user);
 
             if(!User.authorize("Twitter") && !User.authorize("Admin") && !User.authorize("Mod")) return;
 
-            console.log("📣");
-
             const ModelTwitter = new ModelTwitterObj();
-            const post = await ModelTwitter.post(reaction.message);
+            const post = await ModelTwitter.post(reaction.message,user)
+                .catch(e=>{console.log(e)});
+            
             if(post) {
-
-                // await reaction.
-
+                console.log("💙 Tweeted");
             }
 
         }
-
-
 
         return;
 
@@ -338,6 +342,8 @@ const run = async ()=>{
 
     DiscordService.client.on("guildMemberAdd",async (member:Discord.GuildMember)=> {
 
+        // const casual = member.guild.channels.cache.find(ch=>ch.id === "");
+        // if(casual) 
         return;
 
     });

@@ -235,17 +235,17 @@ export class DiscordModelPoll {
         // Set % fields
         let fields:Discord.EmbedFieldData[] = [{
                 name: "\u200B",
-                value: `${pct.up}% 👍`,
+                value: `${results.up} 👍`,
                 inline: true
             },
             {
                 name: "\u200B",
-                value: `${pct.down}% 👎`,
+                value: `${results.down} 👎`,
                 inline: true
             },
             {
                 name: "\u200B",
-                value: `${pct.shrug}% 🤷`,
+                value: `${results.shrug} 🤷`,
                 inline: true
             }];
         
@@ -253,7 +253,7 @@ export class DiscordModelPoll {
             .setTitle(`Poll`)
 			.setColor(0xFFCC00)
 			.setAuthor(user.tag, user.avatarURL())
-			.setFooter(`👍 ${results.up} 👎 ${results.down} 🤷 ${results.shrug} | Ends ${Tools.dateTimeToHHss((new Date(poll.end)))} | Poll ${poll.message}`)
+			.setFooter(`${pct.up}% 👍 ${pct.down}% 👎 ${pct.shrug}% 🤷 | Ends ${Tools.dateTimeToHHss((new Date(poll.end)))} | Poll ${poll.message}`)
 			.setURL(message.url)
             .setDescription(`\n\n${poll.text}\n\n`)
             .addFields(fields);

@@ -93,14 +93,12 @@ export class DiscordModelNews {
             news.subreddit.length = this.maxListSize;
 
             let thumbnail:string;
-            news.subreddit.forEach((submission,idx)=>{
+            news.subreddit.forEach((submission)=>{
 
-                if(!thumbnail && submission.thumbnail) thumbnail = submission.thumbnail; 
-
+                if(!thumbnail && submission.thumbnail && submission.thumbnail !== "self") thumbnail = submission.thumbnail; 
                 text += `🔹${submission.title}\n<${submission.url}>\n\n`;
 
             });
-            
             if(thumbnail) embed.setThumbnail(thumbnail);
             embed.setDescription(text);
 

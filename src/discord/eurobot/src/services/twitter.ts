@@ -21,10 +21,10 @@ export class TwitterFactory {
     constructor() {
 
         this.client = new twitter({
-            consumer_key: process.env.FG_TWITTER_C_KEY,
-            consumer_secret: process.env.FG_TWITTER_C_SECRET,
-            access_token_key: process.env.FG_TWITTER_AT_KEY,
-            access_token_secret: process.env.FG_TWITTER_AT_SECRET
+            consumer_key: process.env.FG_TWITTER_CONSUMER_KEY,
+            consumer_secret: process.env.FG_TWITTER_CONSUMER_SECRET,
+            access_token_key: process.env.FG_TWITTER_TOKEN_KEY,
+            access_token_secret: process.env.FG_TWITTER_TOKEN_SECRET
         });
 
         // Test connection on init
@@ -35,30 +35,33 @@ export class TwitterFactory {
 
     }
 
-    // post message with media
+    // post twitter message with media object
     public async post(message:string,media?:Types.DiscordModelTwitter.MediaObj[]) {
 
-        let params = {status:message};
+        let params:{status:string,media_ids?:string} = {status:message};
 
         if(media && media.length > 0) {
 
+            let mediaIds:string[];
+
             await Tools.asyncForEach(media,async (mediaObj:Types.DiscordModelTwitter.MediaObj)=>{
 
-                const init = await this.initUpload(mediaObj.size,mediaObj.type);
-                console.log(init);
-                // TODO: 
-                // chunk
-                // 
+                const mediaId = await this.initUpload(mediaObj.size,mediaObj.type).catch(e=>{throw e});
+
+                await this.appendUpload(mediaId,mediaObj.data).catch(e=>{throw e});
+                const finalized = await this.finalizeUpload(mediaId).catch(e=>{throw e});
+
+                mediaIds.push(mediaId);
 
             });
 
+            if(mediaIds.length > 0) {
+                params.media_ids = mediaIds.join(","); 
+            }
         }
 
-        // TEST 
-        return new Promise((resolve:any)=>{resolve()});
-
-        // return await this.client.post("statuses/update",params)
-            // .catch(e=>{console.log(e)});
+        return await this.client.post("statuses/update",params)
+            .catch(e=>{console.log("POST ERROR"),console.log(e)});
 
     }
 
@@ -68,6 +71,7 @@ export class TwitterFactory {
 
     }
 
+    //
     // Media Upload Fns
     // https://github.com/desmondmorris/node-twitter/tree/master/examples#media
     //
@@ -80,7 +84,7 @@ export class TwitterFactory {
         }).then((data:twitter.ResponseData) => data.media_id_string);
     }
 
-    private async appendUpload (mediaId:string,mediaData:any) {
+    private async appendUpload (mediaId:string,mediaData:Buffer,segment?:number) {
         return this.makePost('media/upload', {
             command      : 'APPEND',
             media_id     : mediaId,

@@ -6,6 +6,7 @@ import {TwitterService} from "../services/twitter";
 import {Tools} from '../lib/tools';
 
 import * as Types from "../types/index.d"
+import { db } from "../services/db";
 
 
 export class DiscordModelTwitter {
@@ -49,9 +50,18 @@ export class DiscordModelTwitter {
 
     }
 
-    public async post(message:Discord.Message) {
+    public async post(message:Discord.Message,user?:Discord.User|Discord.PartialUser) {
 
         let media:Types.DiscordModelTwitter.MediaObj[] = [];
+        let text = message.content;
+
+        let discordUserID = message.author.id;
+        if(user) discordUserID = user.id;
+
+        if(text.length > 280) return;
+
+        const hasTweet = await db.q("SELECT * FROM discord_tweets WHERE text = ?",[text]);
+        if(hasTweet.length > 0) return;
 
         if(message.attachments) {
 
@@ -66,25 +76,29 @@ export class DiscordModelTwitter {
                 const file = await this.getFile(url)
                                 .catch(e=>{console.log(e)});
 
-                // TODO:
-                // 
-
                 if(file) {
 
-                    console.log(file);
-                    console.log(Buffer.byteLength(file));
-                    console.log(await FileType.fromBuffer(file));
+                    const type = FileType.fromBuffer(file).toString();
+                    media.push({size:Buffer.byteLength(file).toString(),type:type,data:file});
+
                 }
 
                 return;
 
-                // media.push({size:"",type:"",data:null});
-
             });
     
         }
-        
-        return await TwitterService.post(message.content,media);
+
+        if(message.content.length < 1 && media.length < 1) return;
+
+        const post = await TwitterService.post(message.content,media);
+
+        await db.q("INSERT INTO discord_tweets SET ?",[{
+            user_id:discordUserID,
+            text:text
+        }]);
+
+        return post;
 
     }
 

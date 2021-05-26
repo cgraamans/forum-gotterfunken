@@ -6,8 +6,9 @@ export namespace Eurobot {
     export interface Config {
         BadWords?:string[],
         Channels?:ConfigChannel[],
-        Reactions?:ConfigReactions[],
-        Roles?:Roles
+        Reactions?:ConfigReaction[],
+        Roles?:RolesCountries,
+        Routes?:ChannelRoute[]
     }
 
     export interface ConfigRolesCountry {
@@ -26,7 +27,7 @@ export namespace Eurobot {
         user_level:number
     }
 
-    export interface ConfigReactions {
+    export interface ConfigReaction {
         reaction:string,
         category:string
     }
@@ -36,9 +37,17 @@ export namespace Eurobot {
         category:string
     }
 
-    export interface Roles {
+    export interface RolesCountries {
         Countries:ConfigRolesCountry[],
         Users:ConfigRolesUser[]
+    }
+
+    export interface ChannelRoute {
+
+        from:string,
+        to:string,
+        isActive:number
+
     }
 
 }

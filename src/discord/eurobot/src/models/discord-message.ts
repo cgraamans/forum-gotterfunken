@@ -1,4 +1,4 @@
-import Discord from "discord.js";
+import Discord, { MessageEmbed } from "discord.js";
 import {DiscordService} from "../services/discord"
 import { Tools } from "../lib/tools";
 import * as Types from "../types/index.d"
@@ -70,9 +70,39 @@ export class DiscordModelMessage {
     }
 
     // Routing foreign announcement channels to local announcement channels
-    public Route() {
+    public Route(message:Discord.Message) {
 
+        if(message.channel && DiscordService.Config.Routes) {
 
+            const routing = DiscordService.Config.Routes.filter(route=>route.from === message.channel.id)
+            if(routing.length > 0) {
+
+                const messageAttachment = message.attachments.size > 0 ? message.attachments.array()[0].url : null;
+
+                let newMessage:Discord.MessageEmbed | string = new Discord.MessageEmbed()
+                    .setAuthor(message.author.username, message.author.avatarURL())
+                    .setColor(0x003399)
+                    .setFooter(`Via: Forum Götterfunken | https://discord.gg/M2MnDyU`)
+                    .setDescription(message.content);
+
+                if(messageAttachment) newMessage.setImage(messageAttachment);            
+
+                if(message.content.startsWith("https://")) newMessage = message.content;
+
+                routing.forEach(route=>{
+                    if(route.isActive > 0) {
+                        const channel = DiscordService.client.channels.cache.get(route.to);
+                        if(channel) (channel as Discord.TextChannel).send(newMessage);
+                    }
+                });
+
+            }
+
+        }
+
+        // has images or https
+
+        return false;
 
     }
 
