@@ -35,6 +35,24 @@ const run = async ()=>{
 
             if(DiscordService.Config.Channels.find(ch=>ch.category.toLowerCase() === "ignore" && ch.channel_id === message.channel.id)) return;
 
+            // TODO
+            // REMOVE HARDCODED IDs
+            if(message.channel.id === "609511947762925597" && message.content.startsWith("https://")) {
+
+                if(!User.authorize("Twitter") && !User.authorize("Admin") && !User.authorize("Mod")) return;
+    
+                const ModelTwitter = new ModelTwitterObj();
+                const post = await ModelTwitter.post(message)
+                    .catch(e=>{console.log(e)});
+                
+                if(post) {
+
+                    console.log("💙 Tweeted "+message.content);
+
+                }
+
+            }
+
             // Bad words and phrases
             if(ModelMessage.BannedPhrases(message.content)) {
 

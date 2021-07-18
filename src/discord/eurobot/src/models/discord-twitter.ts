@@ -58,7 +58,19 @@ export class DiscordModelTwitter {
         let discordUserID = message.author.id;
         if(user) discordUserID = user.id;
 
-        if(text.length > 280) return;
+        // Determine Length of tweet
+        const textArr = text.split(" ");
+        let textLinks = 0;
+        let textElements:string[] = [];
+        textArr.forEach(textElement=>{
+            if(textElement.startsWith("https://")) {
+                textLinks++;
+            } else {
+                textElements.push(textElement);
+            }
+        });
+
+        if(textElements.join(" ").length + textLinks * 23 > 280) return;
 
         const hasTweet = await db.q("SELECT * FROM discord_tweets WHERE text = ?",[text]);
         if(hasTweet.length > 0) return;

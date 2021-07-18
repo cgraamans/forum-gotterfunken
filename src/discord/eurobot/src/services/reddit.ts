@@ -16,6 +16,7 @@ export class RedditFactory {
             username: process.env.FG_REDDIT_USER,
             password: process.env.FG_REDDIT_PASS
         });
+
     }
 
     // Service Instance Initialization
