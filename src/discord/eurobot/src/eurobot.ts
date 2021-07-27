@@ -11,6 +11,10 @@ import {DiscordModelUser as ModelUserObj} from "./models/discord-user";
 import {DiscordService} from "./services/discord";
 import {Tools} from "./lib/tools";
 
+import * as schedule from "node-schedule";
+
+let jobs = [];
+
 const run = async ()=>{
 
     console.log(`START: ${new Date()}`);
@@ -336,7 +340,8 @@ const run = async ()=>{
             const update = await ModelPoll.update(reaction,user);
             if(update) {
 
-                ModelPoll.PromiseEmojiList.push(reaction.message.reactions.cache.find(r => r.emoji.name === reaction.emoji.name).users.remove(user.id));
+                // Remove user's reaction
+                // ModelPoll.PromiseEmojiList.push(reaction.message.reactions.cache.find(r => r.emoji.name === reaction.emoji.name).users.remove(user.id));
 
                 const poll = await ModelPoll.get(reaction.message);
                 const totals = await ModelPoll.getResultTotals(reaction.message);
@@ -347,7 +352,7 @@ const run = async ()=>{
             
         }
 
-        if(["💙"].includes(reaction.emoji.name)) {
+        if(["💙","⭐"].includes(reaction.emoji.name)) {
 
             const User = new ModelUserObj(reaction.message,user);
 
@@ -356,10 +361,11 @@ const run = async ()=>{
             const ModelTwitter = new ModelTwitterObj();
             const post = await ModelTwitter.post(reaction.message,user)
                 .catch(e=>{console.log(e)});
-            
-            if(post) {
-                console.log("💙 Tweeted");
-            }
+
+            // TODO: if commandline has output on
+            // if(post) {
+            //     console.log("💙 Tweeted");
+            // }
 
         }
 
@@ -367,11 +373,63 @@ const run = async ()=>{
 
     });
 
-    DiscordService.client.on("guildMemberAdd",async (member:Discord.GuildMember)=> {
+    //
+    // JOBS
+    // TODO: Move jobs to DiscordService Controller
 
-        // const casual = member.guild.channels.cache.find(ch=>ch.id === "");
-        // if(casual) 
-        return;
+    // TODO: Job-News
+    jobs.push({
+
+        id:"Job-News",
+        job:schedule.scheduleJob("0 0 0 * * *", async ()=>{
+
+            // get news
+            return;
+
+        })
+
+    });
+
+    jobs.push({
+
+        id:"Job-Calendar",
+        job:schedule.scheduleJob("0 0 7 * * *", async ()=>{
+
+            if(DiscordService.client) {
+
+                const ModelCalendar = new ModelCalendarObj();
+
+                const range = ModelCalendar.CalendarTextToUnixTimes();
+                if(!range) return;
+
+                const items = await ModelCalendar.get(range);
+                if(items.length > 0) {
+
+                    const embed = ModelCalendar.toRich(items,range);
+
+                    DiscordService.client.guilds.cache.forEach(guild=>{
+
+                        let channelRows = DiscordService.Config.Channels.filter(x=>x.category === "Job-Calendar");
+                        channelRows.forEach(channelRow=>{
+
+                            let channel = guild.channels.cache.get(channelRow.channel_id) as Discord.TextChannel;
+                            if(channel && embed) channel.send(embed);  
+
+                        });
+
+                    });
+
+                } else {
+
+                    console.log("- no calendar items for "+ range.from + "-" + range.to);
+
+                }
+
+            }
+
+            return;            
+
+        })
 
     });
 

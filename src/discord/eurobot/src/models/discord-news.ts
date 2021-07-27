@@ -61,6 +61,13 @@ export class DiscordModelNews {
 
     }
 
+    // TODO: Function for raw output to replace keydeflist in get
+    public async getRaw(key:string) {
+
+
+
+    }
+
     // Convert news to rich output
     // toRich
     public toRich(news:Types.DiscordModelNews.NewsModel) {

@@ -83,8 +83,9 @@ export class DBFactory {
     }
 
     // Execute MySQL query
-	public async q(sql:string,vals:any[]) {
+	public async q(sql:string,vals?:any[]) {
 
+        if(!vals) vals = [];
         if(this.Pool) {
             
             const connection = await this.getPoolConnection().catch(e=>{throw e});

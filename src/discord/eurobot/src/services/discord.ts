@@ -90,13 +90,13 @@ export class DiscordFactory {
     // Retrieve configs from database for constructor
     private async getConfig() {
 
-        this.Config.Routes = await db.q("SELECT * FROM discord_conf_routes",[]).catch(e=>{throw e});
-        this.Config.BadWords = await db.q("SELECT * FROM discord_conf_badwords",[]).catch(e=>{throw e});
-        this.Config.Channels = await db.q("SELECT * FROM discord_conf_channels",[]).catch(e=>{throw e});
-        this.Config.Reactions = await db.q("SELECT * FROM discord_conf_reactions",[]).catch(e=>{throw e});
+        this.Config.Routes = await db.q("SELECT * FROM discord_conf_routes").catch(e=>{throw e});
+        this.Config.BadWords = await db.q("SELECT * FROM discord_conf_badwords").catch(e=>{throw e});
+        this.Config.Channels = await db.q("SELECT * FROM discord_conf_channels").catch(e=>{throw e});
+        this.Config.Reactions = await db.q("SELECT * FROM discord_conf_reactions").catch(e=>{throw e});
         this.Config.Roles = {
-            Countries:(await db.q("SELECT * FROM discord_conf_role_countries",[]).catch(e=>{throw e})),
-            Users:(await db.q("SELECT * FROM discord_conf_role_users",[]).catch(e=>{throw e}))
+            Countries:(await db.q("SELECT * FROM discord_conf_role_countries").catch(e=>{throw e})),
+            Users:(await db.q("SELECT * FROM discord_conf_role_users").catch(e=>{throw e}))
         };
 
         return;
