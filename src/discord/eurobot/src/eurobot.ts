@@ -11,6 +11,7 @@ import {DiscordModelUser as ModelUserObj} from "./models/discord-user";
 import {DiscordService} from "./services/discord";
 import {Tools} from "./lib/tools";
 
+import Roll from "roll";
 import * as schedule from "node-schedule";
 
 let jobs = [];
@@ -113,9 +114,9 @@ const run = async ()=>{
                         reaction = reactionObj.reaction;
                     }
 
-                    let emoji = await ModelMessage.MessageGuildEmoji(message).catch(e=>{throw e});
+                    const emoji = await ModelMessage.MessageGuildEmoji(message).catch(e=>{throw e});
                     
-                    let discordMessage = Tools.shuffleArray([reaction,emoji]).join(" ");
+                    const discordMessage = Tools.shuffleArray([reaction,emoji]).join(" ");
                     await message.channel.send(discordMessage);
 
                 }
@@ -127,7 +128,7 @@ const run = async ()=>{
             // EU flag React [loveEU]
             if(message.content.toLowerCase().includes("🇪🇺")) {
 
-                let emoji = await ModelMessage.MessageGuildEmoji(message,"loveEU").catch(e=>{throw e});
+                const emoji = await ModelMessage.MessageGuildEmoji(message,"loveEU").catch(e=>{throw e});
                 message.react(emoji.id);
 
                 return;
@@ -137,7 +138,7 @@ const run = async ()=>{
             // keyword react
             if(message.content.toLowerCase().includes("uschi") || message.content.toLowerCase().includes("sassoli") || message.content.toLowerCase().includes("michel")) {
 
-                let emoji = await ModelMessage.MessageGuildEmoji(message).catch(e=>{throw e});
+                const emoji = await ModelMessage.MessageGuildEmoji(message).catch(e=>{throw e});
                 message.react(emoji.id);
 
                 return;
@@ -147,7 +148,7 @@ const run = async ()=>{
             // FREUDE React
             if(message.content.toLowerCase().match(/freude[!?]*$/gm)) {
 
-                let emoji = await ModelMessage.MessageGuildEmoji(message).catch(e=>{throw e});
+                const emoji = await ModelMessage.MessageGuildEmoji(message).catch(e=>{throw e});
                 await message.channel.send(`SCHÖNER ${emoji}`);
 
                 return;
@@ -157,7 +158,7 @@ const run = async ()=>{
             // GOTTERFUNKEN React
             if(message.content.toLowerCase().endsWith("gotterfunken") || message.content.toLowerCase().endsWith("götterfunken")) {
 
-                let emoji = await ModelMessage.MessageGuildEmoji(message).catch(e=>{throw e});
+                const emoji = await ModelMessage.MessageGuildEmoji(message).catch(e=>{throw e});
                 await message.channel.send(`${emoji}`);
 
                 return;
@@ -278,19 +279,31 @@ const run = async ()=>{
             // COUNTRY command
             if(command.string === "country") {
 
-                if(!User.authorize("Country") && !User.authorize("Admin") && !User.authorize("Mod")) return;
-
                 const RoleObj = await User.toggleRoleCountry(command.options.join(' '));
                 if(RoleObj) {
 
                     const richEmbed = User.toRichRoleCountry(RoleObj);
-                    if(richEmbed) message.channel.send(richEmbed);
+                    if(richEmbed) await message.channel.send(richEmbed);
+
+                    // Auto Register for FG
+                    //TODO REMOVE HARDCODED ID
+                    const hasRegisterRole = message.member.roles.cache.find(role=>role.id === "581605959990771725");
+                    if(!hasRegisterRole) {
+
+                        const registerRole = message.guild.roles.cache.find(role=>role.id === "581605959990771725");
+                        await message.member.roles.add(registerRole);
+
+                        const targetChannel = message.guild.channels.cache.get("257838262943481857") as Discord.TextChannel;
+                        if(targetChannel) {
+
+                            const emoji = await ModelMessage.MessageGuildEmoji(message).catch(e=>{console.log(e)});
+                            await targetChannel.send(`${RoleObj.emoji} Welcome to Forum Götterfunken, ${message.author} ${emoji}`).catch(e=>{console.log(e)});
+
+                        }
+
+                    }
 
                 }
-
-                // Auto Register for FG
-                const registerRole = message.member.roles.cache.find(role=>role.id === "581605959990771725");
-                if(registerRole) await message.member.roles.add(registerRole);
 
                 return;
 
@@ -300,7 +313,6 @@ const run = async ()=>{
             if(command.string === "register") {
 
                 //TODO REMOVE HARDCODED ID
-                //TODO RICH EMBED TO CHANNEL
                 const registerRole = message.guild.roles.cache.find(role=>role.id === "581605959990771725");
                 if(registerRole && !message.member.roles.cache.find(r=>r.id === registerRole.id)) {
 
@@ -316,6 +328,35 @@ const run = async ()=>{
                 }
                 return;
 
+            }
+
+            if(command.string === "roll") {
+
+                if(!User.authorize("Admin") && !User.authorize("Mod") && !User.authorize("Dice")) return;
+                
+                const roll = new Roll();
+                if(roll.validate(command.options[0])) {
+
+                    const rollResult = roll.roll(command.options[0]).result;
+
+                    let emoji;
+                    let text = `${rollResult}`;
+                    if(command.options.length > 1) {
+                        
+                        emoji = await ModelMessage.MessageGuildEmoji(message).catch(e=>{throw e});
+                        if(Math.random() < 0.5){
+                            text = `${emoji} ` + text;
+                        } else {
+                            text = text + ` ${emoji}`;
+                        }
+
+                    }
+                    message.channel.send(text);
+                    
+                }
+                
+                return;
+                
             }
 
         }
@@ -352,7 +393,7 @@ const run = async ()=>{
             
         }
 
-        if(["💙","⭐"].includes(reaction.emoji.name)) {
+        if(["💙"].includes(reaction.emoji.name)) {
 
             const User = new ModelUserObj(reaction.message,user);
 
