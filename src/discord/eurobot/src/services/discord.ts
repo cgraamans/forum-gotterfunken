@@ -1,6 +1,8 @@
 import {db} from "./db";
 import Discord from "discord.js";
 
+import * as Types from "../types/index.d";
+
 export class DiscordFactory {
 
     private static instance:DiscordFactory;
@@ -9,30 +11,73 @@ export class DiscordFactory {
 
     public Timers:NodeJS.Timeout[] = [];
 
+    public Config:Types.Eurobot.Config = {};
+
+    public isReady:boolean = false;
+
+    // Service Instance Initialization
+    static getInstance() {
+        
+        if (!DiscordFactory.instance) {
+            DiscordFactory.instance = new DiscordFactory();
+        }
+        return DiscordFactory.instance;
+
+    }
+
     constructor() {
 
         try {
 
-            this.client.on("error",e=>{
-                throw e;
-            })
+            //
+            // CONFIG
+            //
 
-            this.client.on("ready",() => {
+            const config = this.getConfig()
+                .then(()=>{
 
-                console.log("Discord Ready");
+                    // 
+                    // DISCORD CLIENT
+                    //
 
-            });
+                    this.client.on("error",e=>{
 
-            this.client.on('disconnect',(message:Discord.Message)=>{
+                        this.isReady = false;
+                        throw e;
 
-                if(message) console.log("Disconnected",message);
+                    });
 
-                setTimeout(()=>{
+                    this.client.on("ready",() => {
+
+                        this.isReady = true;
+                        console.log("Discord Ready");
+
+                    });
+
+                    this.client.on('disconnect',(message:Discord.Message)=>{
+
+                        this.isReady = false;
+                        if(message) console.log("Disconnected",message);
+
+
+                        setTimeout(()=>{
+                            this.client.login(process.env.EUROBOT_DISCORD)
+                        },15000);
+                    
+                    });
+                    
                     this.client.login(process.env.EUROBOT_DISCORD)
-                },15000);
-            
-            });
-            this.client.login(process.env.EUROBOT_DISCORD);
+                        .then(()=>{
+                            this.isReady = true;
+                        }).catch(e=>{
+
+                            this.isReady = false;
+                            throw e;
+
+                        });
+
+                });
+
 
         } catch(e) {
 
@@ -42,13 +87,19 @@ export class DiscordFactory {
 
     }
 
-    // Service Instance Initialization
-    static getInstance() {
-        
-        if (!DiscordFactory.instance) {
-            DiscordFactory.instance = new DiscordFactory();
-        }
-        return DiscordFactory.instance;
+    // Retrieve configs from database for constructor
+    private async getConfig() {
+
+        this.Config.Routes = await db.q("SELECT * FROM discord_conf_routes").catch(e=>{throw e});
+        this.Config.BadWords = await db.q("SELECT * FROM discord_conf_badwords").catch(e=>{throw e});
+        this.Config.Channels = await db.q("SELECT * FROM discord_conf_channels").catch(e=>{throw e});
+        this.Config.Reactions = await db.q("SELECT * FROM discord_conf_reactions").catch(e=>{throw e});
+        this.Config.Roles = {
+            Countries:(await db.q("SELECT * FROM discord_conf_role_countries").catch(e=>{throw e})),
+            Users:(await db.q("SELECT * FROM discord_conf_role_users").catch(e=>{throw e}))
+        };
+
+        return;
 
     }
 
@@ -68,7 +119,7 @@ export class DiscordFactory {
     public async UserWarningAdd(user:Discord.User, reason:string|null = null) {
 
         return await db.q(`
-        
+
             INSERT INTO discord_user_warnings
             SET ?
 

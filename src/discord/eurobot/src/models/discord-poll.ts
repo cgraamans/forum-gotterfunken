@@ -4,7 +4,7 @@ import {DiscordModelMessage} from "./discord-message";
 import {Tools} from "../lib/tools";
 import * as Types from "../types/index.d";
 import { db } from "../services/db";
-import { VoteableContent } from "snoowrap";
+import { DiscordService } from "../services/discord";
 
 export class DiscordModelPoll {
 
@@ -20,11 +20,13 @@ export class DiscordModelPoll {
 
         let Channel:Discord.GuildChannel;
 
-        ConfDiscord.Channels.Poll.forEach(pollChannel=>{
-            const pollGuildChannel = message.guild.channels.cache.find(guildChannel=>guildChannel.id === pollChannel);
-            if(pollGuildChannel) Channel = pollGuildChannel;
+        DiscordService.Config.Channels.forEach((ch:Types.Eurobot.ConfigChannel)=>{
+            if(ch.category.toLowerCase() === "poll") {
+                const channel = message.guild.channels.cache.find(gCh=>gCh.id === ch.channel_id);
+                if(channel) Channel = channel;
+            }
         });
-
+        
         return Channel;
 
     }
@@ -78,7 +80,7 @@ export class DiscordModelPoll {
 
     }
 
-    async update(reaction:Discord.MessageReaction,user:Discord.User|Discord.PartialUser) {
+    async update(reaction:Discord.MessageReaction,user:Discord.PartialUser | Discord.User) {
 
         let VoteDir:string;
 
@@ -164,8 +166,9 @@ export class DiscordModelPoll {
                     poll.end = (Math.round((new Date().getTime()+timeOptions[timeOptions.length-1])/1000));
                 }
 
-                const channel = message.client.channels.cache.find(channel => channel.id === poll.channel)
-                if(channel && channel.type === "text" && !ConfDiscord.Channels.Ignore.includes(channel.id)){
+                // SEND
+                const channel = message.client.channels.cache.find(channel => channel.id === poll.channel);
+                if(channel && channel.type === "text" && !DiscordService.Config.Channels.find(ch=>ch.category.toLowerCase() === "ignore" && ch.channel_id === channel.id)){
 
                     let post = this.toRich(message,poll);
                     if(!post) return;
@@ -232,28 +235,25 @@ export class DiscordModelPoll {
         // Set % fields
         let fields:Discord.EmbedFieldData[] = [{
                 name: "\u200B",
-                value: `${pct.up}% 👍`,
+                value: `${results.up} 👍`,
                 inline: true
             },
             {
                 name: "\u200B",
-                value: `${pct.down}% 👎`,
+                value: `${results.down} 👎`,
                 inline: true
             },
             {
                 name: "\u200B",
-                value: `${pct.shrug}% 🤷`,
+                value: `${results.shrug} 🤷`,
                 inline: true
             }];
         
-        // Set author
-        
-
         const embed = new Discord.MessageEmbed()
             .setTitle(`Poll`)
 			.setColor(0xFFCC00)
 			.setAuthor(user.tag, user.avatarURL())
-			.setFooter(`👍 ${results.up} 👎 ${results.down} 🤷 ${results.shrug} | Ends ${Tools.dateTimeToHHss((new Date(poll.end)))} | Poll ${poll.message}`)
+			.setFooter(`${pct.up}% 👍 ${pct.down}% 👎 ${pct.shrug}% 🤷 | Ends ${Tools.dateTimeToHHss((new Date(poll.end)))} | Poll ${poll.message}`)
 			.setURL(message.url)
             .setDescription(`\n\n${poll.text}\n\n`)
             .addFields(fields);

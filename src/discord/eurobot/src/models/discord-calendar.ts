@@ -9,44 +9,47 @@ export class DiscordModelCalendar {
 
     // Convert human calendar times to Date object ranges (ms)
     // CalendarUnixTimes
-    public CalendarTextToUnixTimes(text:string) {
+    public CalendarTextToUnixTimes(text?:string) {
 
         let rtn:{from:Date,to?:Date,human:string} = {
             from:new Date(new Date().setHours(0,0,0,0)),
             human:"this week"
         };
         rtn.to = new Date(rtn.from.getTime() + (86400000 * 7) - 1);
+        if(text) {
 
-        if(text.includes("tomorrow")) {
+            if(text.includes("tomorrow")) {
     
-            rtn.from = new Date(new Date(new Date().getTime() + 86400000).setHours(0,0,0,0));
-            rtn.to = new Date(new Date(rtn.from).getTime() + (86400000));
-            rtn.human = "tomorrow";
+                rtn.from = new Date(new Date(new Date().getTime() + 86400000).setHours(0,0,0,0));
+                rtn.to = new Date(new Date(rtn.from).getTime() + (86400000));
+                rtn.human = "tomorrow";
+        
+            }
     
-        }
-
-        if(text.includes("today")) {
+            if(text.includes("today")) {
+        
+                rtn.from = new Date(new Date().setHours(0,0,0,0));
+                rtn.to = new Date(rtn.from.getTime() + (86400000 -1));
+                rtn.human = "today";
+        
+            }
+        
+            if(text.includes("next week")) {
+        
+                rtn.from = new Date(new Date(new Date().getTime() + (86400000 * 7)).setHours(0,0,0,0));
+                rtn.to = new Date(rtn.from.getTime() + (86400000 * 7) - 1);
+                rtn.human = "next week";
+        
+            }
     
-            rtn.from = new Date(new Date().setHours(0,0,0,0));
-            rtn.to = new Date(rtn.from.getTime() + (86400000 -1));
-            rtn.human = "today";
+            const smhd = Tools.stringDateSMHDToTime(text);
+            if(smhd) {
     
-        }
+                rtn.from = new Date(new Date().setHours(0,0,0,0));
+                rtn.to = new Date(rtn.from.getTime() + (smhd -1));
+                rtn.human = Tools.stringDateSMHDToHuman(text);
     
-        if(text.includes("next week")) {
-    
-            rtn.from = new Date(new Date(new Date().getTime() + (86400000 * 7)).setHours(0,0,0,0));
-            rtn.to = new Date(rtn.from.getTime() + (86400000 * 7) - 1);
-            rtn.human = "next week";
-    
-        }
-
-        const smhd = Tools.stringDateSMHDToTime(text);
-        if(smhd) {
-
-            rtn.from = new Date(new Date().setHours(0,0,0,0));
-            rtn.to = new Date(rtn.from.getTime() + (smhd -1));
-            rtn.human = Tools.stringDateSMHDToHuman(text);
+            }
 
         }
 

@@ -25,7 +25,7 @@ export class ToolBox {
     }
 
     // shuffle array 
-    // refference: https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+    // reference: https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
     shuffleArray(array:any[]) {
 
         if(array.length < 1) return [];
