@@ -165,7 +165,7 @@ export class DiscordModelMessage {
 
         let channels:string[] = [];
 
-        options.forEach((section:string,idx:number)=>{
+        options.forEach((section:string)=>{
 
             const matchedChannel = section.match(Discord.MessageMentions.CHANNELS_PATTERN);
             if(matchedChannel && !section.startsWith("/"))
