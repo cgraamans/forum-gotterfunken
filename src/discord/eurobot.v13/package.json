@@ -25,9 +25,9 @@
   "dependencies": {
     "@discordjs/builders": "^0.6.0",
     "@discordjs/rest": "^0.1.0-canary.0",
-    "command-line-args": "^5.2.0",
     "discord-api-types": "^0.22.0",
     "discord.js": "^13.1.0",
+    "command-line-args": "^5.2.0",
     "file-type": "^16.5.3",
     "googleapis": "^67.1.1",
     "mysql": "^2.18.1",

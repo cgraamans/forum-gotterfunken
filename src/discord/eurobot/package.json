@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/svc.js",
   "scripts": {
-    "start": "npx ts-node-dev --respawn --transpile-only src/eurobot.ts",
+    "start": "npx ts-node-dev --respawn --transpile-only src/eurobot.ts > run.log",
     "test": "npx tslint -c tslint.json 'src/**/*.ts'",
     "build": "tsc"
   },

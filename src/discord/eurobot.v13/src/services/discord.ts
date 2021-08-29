@@ -1,5 +1,6 @@
 import DB from "./db";
 import {Client, Intents, Message, User} from "discord.js";
+import * as fs from "fs";
 
 import * as Eurobot from "../../types/index.d";
 
@@ -7,13 +8,12 @@ export class Discord {
 
     private static instance:Discord;
 
-    public client:Client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], intents: [Intents.FLAGS.GUILDS]});
+    public Client:Client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], intents: [Intents.FLAGS.GUILDS]});
 
     public Timers:NodeJS.Timeout[] = [];
 
     public Config:Eurobot.Base.Config = {};
 
-    public isReady:boolean = false;
 
     // Service Instance Initialization
     static getInstance() {
@@ -39,43 +39,47 @@ export class Discord {
                     // 
                     // DISCORD CLIENT
                     //
+                    // Queue events
 
-                    this.client.on("error",e=>{
 
-                        this.isReady = false;
+                    const eventFiles = fs.readdirSync(`${__dirname}/../events`);
+
+                    console.log(eventFiles);
+
+                    for (const file of eventFiles) {
+                        const event = require(`${__dirname}/../events/${file}`);
+                        if (event.once) {
+                            this.Client.once(event.name, (...args) => event.execute(...args));
+                        } else {
+                            this.Client.on(event.name, (...args) => event.execute(...args));
+                        }
+                    }
+
+                    this.Client.on("error",e=>{
+
                         console.log("Discord Service Client Error");
                         throw e;
 
                     });
 
-                    this.client.on("ready",() => {
+                    // this.Client.on("ready",() => {
 
-                        this.isReady = true;
-                        console.log("Discord Ready");
+                    //     this.isReady = true;
+                    //     console.log("Discord Ready");
 
-                    });
+                    // });
 
-                    this.client.on('disconnect',(message:Message)=>{
+                    this.Client.on('disconnect',(message:Message)=>{
 
-                        this.isReady = false;
                         if(message) console.log("Disconnected",message);
 
-
                         setTimeout(()=>{
-                            this.client.login(process.env.EUROBOT_DISCORD)
+                            this.Client.login(process.env.EUROBOT_DISCORD)
                         },15000);
                     
                     });
                     
-                    this.client.login(process.env.EUCOBOT)
-                        .then(()=>{
-                            this.isReady = true;
-                        }).catch(e=>{
-
-                            this.isReady = false;
-                            throw e;
-
-                        });
+                    this.Client.login(process.env.EUCOBOT);
 
                 });
 

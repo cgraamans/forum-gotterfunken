@@ -1,5 +1,10 @@
-import {Client, Intents} from "discord.js";
-import * as Service from "./services";
+import Discord from "./services/discord";
+import * as fs from "fs";
 
 const token = process.env["EUCOBOT"];
-console.log(Service);
+
+(async () => {
+
+    console.log(Discord);
+
+});
