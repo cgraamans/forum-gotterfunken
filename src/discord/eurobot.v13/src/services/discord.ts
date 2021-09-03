@@ -1,5 +1,7 @@
 import DB from "./db";
-import {Client, Intents, Message, User} from "discord.js";
+import * as ClientType from "../../types/discord";
+
+import {Intents, Message, User, Client} from "discord.js";
 import * as fs from "fs";
 
 import * as Eurobot from "../../types/index.d";
@@ -41,10 +43,7 @@ export class Discord {
                     //
                     // Queue events
 
-
                     const eventFiles = fs.readdirSync(`${__dirname}/../events`);
-
-                    console.log(eventFiles);
 
                     for (const file of eventFiles) {
                         const event = require(`${__dirname}/../events/${file}`);
@@ -61,13 +60,6 @@ export class Discord {
                         throw e;
 
                     });
-
-                    // this.Client.on("ready",() => {
-
-                    //     this.isReady = true;
-                    //     console.log("Discord Ready");
-
-                    // });
 
                     this.Client.on('disconnect',(message:Message)=>{
 
