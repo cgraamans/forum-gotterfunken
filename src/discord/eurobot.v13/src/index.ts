@@ -1,7 +1,7 @@
 import Discord from "./services/discord";
 import * as fs from "fs";
-
 import { Collection, Interaction } from "discord.js";
+
 (async () => {
 
     Discord.Client.commands = new Collection();

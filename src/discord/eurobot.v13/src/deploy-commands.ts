@@ -6,8 +6,8 @@ const commands = [];
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
 // Place your client and guild ids here
-const clientId = '123456789012345678';
-const guildId = '876543210987654321';
+const clientId = '736008030532927599';
+const guildId = '633016043136090124';
 
 for (const file of commandFiles) {
 	const command = require(`./commands/${file}`);
