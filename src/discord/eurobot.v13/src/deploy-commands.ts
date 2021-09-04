@@ -3,7 +3,7 @@ import {REST} from '@discordjs/rest';
 import {Routes} from 'discord-api-types/v9';
 
 const commands = [];
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+const commandFiles = fs.readdirSync('./commands').filter(file=>!file.endsWith(".map"));
 
 // Place your client and guild ids here
 const clientId = '736008030532927599';
@@ -29,4 +29,5 @@ const rest = new REST({ version: '9' }).setToken(process.env["EUCOBOT"]);
 	} catch (error) {
 		console.error(error);
 	}
+
 })();

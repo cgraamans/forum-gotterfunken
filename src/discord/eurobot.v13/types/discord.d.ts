@@ -5,3 +5,5 @@ declare module "discord.js" {
         commands: Collection<unknown, any>
     }
 }
+
+declare module 'node-fetch';
