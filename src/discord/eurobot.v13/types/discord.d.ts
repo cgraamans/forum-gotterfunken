@@ -6,4 +6,4 @@ declare module "discord.js" {
     }
 }
 
-declare module 'node-fetch';
+// declare module 'node-fetch';

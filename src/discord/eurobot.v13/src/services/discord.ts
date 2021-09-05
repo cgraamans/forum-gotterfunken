@@ -1,7 +1,8 @@
 import DB from "./db";
-import * as ClientType from "../../types/discord";
+import * as ClientT from "../../types/discord";
+import * as BotT from "../../types/index";
 
-import {Intents, Message, User, Client} from "discord.js";
+import {Intents, Message, User, Client, Guild} from "discord.js";
 import * as fs from "fs";
 
 import * as Eurobot from "../../types/index.d";
@@ -10,12 +11,13 @@ export class Discord {
 
     private static instance:Discord;
 
-    public Client:Client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], intents: [Intents.FLAGS.GUILDS]});
+    public Client:Client
 
     public Timers:NodeJS.Timeout[] = [];
 
     public Config:Eurobot.Base.Config = {};
 
+    private Roles:string[] = [];
 
     // Service Instance Initialization
     static getInstance() {
@@ -35,6 +37,8 @@ export class Discord {
             // CONFIG
             //
 
+            this.Client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], intents: [Intents.FLAGS.GUILDS]});
+
             const config = this.getConfig()
                 .then(()=>{
 
@@ -43,7 +47,7 @@ export class Discord {
                     //
                     // Queue events
 
-                    const eventFiles = fs.readdirSync(`${__dirname}/../events`);
+                    const eventFiles = fs.readdirSync(`${__dirname}/../events`).filter(file=>!file.endsWith('.map'));
 
                     for (const file of eventFiles) {
                         const event = require(`${__dirname}/../events/${file}`);
@@ -73,8 +77,9 @@ export class Discord {
                     
                     this.Client.login(process.env.EUCOBOT);
 
-                });
 
+
+                }).catch(e=>{console.log(e)});
 
         } catch(e) {
 
@@ -100,32 +105,58 @@ export class Discord {
 
     }
 
-    // Get User Warnings
-    public async UserWarnings(user:User,minutes:number = 5):Promise<any> {
+    // // Get User Warnings
+    // public async UserWarnings(user:User,minutes:number = 5):Promise<any> {
 
-        return await DB.q(`
+    //     return await DB.q(`
         
-            SELECT * FROM discord_user_warnings 
-            WHERE user_id = ?
-            AND dt > ?
+    //         SELECT * FROM discord_user_warnings 
+    //         WHERE user_id = ?
+    //         AND dt > ?
         
-        `,[user.id,(new Date().getTime() - (minutes * 60000))]);
+    //     `,[user.id,(new Date().getTime() - (minutes * 60000))]);
     
-    }
+    // }
 
-    public async UserWarningAdd(user:User, reason:string|null = null) {
+    // public async UserWarningAdd(user:User, reason:string|null = null) {
 
-        return await DB.q(`
+    //     return await DB.q(`
 
-            INSERT INTO discord_user_warnings
-            SET ?
+    //         INSERT INTO discord_user_warnings
+    //         SET ?
 
-        `,[{
-            user_id:user.id,
-            dt:(new Date().getTime()),
-            reason:reason
-        }]);
+    //     `,[{
+    //         user_id:user.id,
+    //         dt:(new Date().getTime()),
+    //         reason:reason
+    //     }]);
 
+    // }
+
+    // is a user authorized for an action?
+    public async isAuthorized(userID:string,guild:Guild,roles:string[]) {
+
+        const user = guild.members.cache.get(userID);
+        if(!user) return;
+
+        // if(typeof roles === "string") roles = [roles];
+        let RoleCategory:BotT.Base.ConfigRolesUser;
+        roles.forEach(role=>{
+            // find role name in Config
+            const UserRole = this.Config.Roles.Users.find(userRole=>userRole.category === role);
+            if(UserRole) RoleCategory = UserRole;
+        });
+        if(!RoleCategory) return false;
+
+        // todo: refactor role_id to id
+        const RoleGuild = guild.roles.cache.find(guildRole=>guildRole.id === RoleCategory.role_id);
+        if(!RoleGuild) return false;
+
+        const hasRole = user.roles.cache.get(RoleCategory.role_id);
+        if(hasRole) return true;
+
+        return false;
+        
     }
 
 }
