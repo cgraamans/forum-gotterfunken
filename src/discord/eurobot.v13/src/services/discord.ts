@@ -59,7 +59,6 @@ export class Discord {
                 //
                 // Queue events
 
-
                 this.Client.on("error",e=>{
 
                     console.log("Discord Service Client Error");
