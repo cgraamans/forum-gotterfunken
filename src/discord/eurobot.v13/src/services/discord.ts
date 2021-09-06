@@ -37,49 +37,47 @@ export class Discord {
             // CONFIG
             //
 
-            this.Client = new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'], intents: [Intents.FLAGS.GUILDS]});
+            this.Client = new Client({ intents: [Intents.FLAGS.GUILDS,Intents.FLAGS.GUILD_MESSAGES]});
 
-            const config = this.getConfig()
-                .then(()=>{
+            this.getConfig().then(()=>{
 
-                    // 
-                    // DISCORD CLIENT
-                    //
-                    // Queue events
+                const eventFiles = fs.readdirSync(`${__dirname}/../events`).filter(file=>!file.endsWith('.map'));
 
-                    const eventFiles = fs.readdirSync(`${__dirname}/../events`).filter(file=>!file.endsWith('.map'));
-
-                    for (const file of eventFiles) {
-                        const event = require(`${__dirname}/../events/${file}`);
-                        if (event.once) {
-                            this.Client.once(event.name, (...args) => event.execute(...args));
-                        } else {
-                            this.Client.on(event.name, (...args) => event.execute(...args));
-                        }
+                for (const file of eventFiles) {
+                    const event = require(`${__dirname}/../events/${file}`);
+                    if (event.once) {
+                        this.Client.once(event.name, (...args) => event.execute(...args));
+                    } else {
+                        this.Client.on(event.name, (...args) => event.execute(...args));
                     }
+                }
 
-                    this.Client.on("error",e=>{
+            }).catch(e=>{console.log(e)});
 
-                        console.log("Discord Service Client Error");
-                        throw e;
-
-                    });
-
-                    this.Client.on('disconnect',(message:Message)=>{
-
-                        if(message) console.log("Disconnected",message);
-
-                        setTimeout(()=>{
-                            this.Client.login(process.env.EUROBOT_DISCORD)
-                        },15000);
-                    
-                    });
-                    
-                    this.Client.login(process.env.EUCOBOT);
+                // 
+                // DISCORD CLIENT
+                //
+                // Queue events
 
 
+                this.Client.on("error",e=>{
 
-                }).catch(e=>{console.log(e)});
+                    console.log("Discord Service Client Error");
+                    throw e;
+
+                });
+
+                this.Client.on('disconnect',(message:Message)=>{
+
+                    if(message) console.log("Disconnected",message);
+
+                    setTimeout(()=>{
+                        this.Client.login(process.env.EUROBOT_DISCORD)
+                    },15000);
+                
+                });
+                
+                this.Client.login(process.env.EUCOBOT);
 
         } catch(e) {
 

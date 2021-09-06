@@ -2,13 +2,17 @@ import { Message } from "discord.js";
 import Discord from "../services/discord";
 
 module.exports = {
-	name: 'message',
-	once: false,
+	name: 'messageCreate',
 	async execute(message:Message) {
+
+		// console.log(interaction);
 
 		if(message.author.bot) return;
 
-		if(!Discord.isAuthorized(message.author.id,message.guild,["Twitter","Admin","Mod"])) message.reply("AUTHORIZED");
+		console.log(message);
+
+		if(!Discord.isAuthorized(message.author.id,message.guild,["Twitter","Admin","Mod"])) message.reply("NOT AUTHORIZED");
+		if(Discord.isAuthorized(message.author.id,message.guild,["Twitter","Admin","Mod"])) message.reply("AUTHORIZED");
 
 		// if(message.channel.id === "609511947762925597" && message.content.startsWith("https://")) {
 
@@ -25,6 +29,6 @@ module.exports = {
 
 		// }
 
-		console.log(`MESSAGE`,message);
+		// console.log(`MESSAGE`,message);
 	},
 };
