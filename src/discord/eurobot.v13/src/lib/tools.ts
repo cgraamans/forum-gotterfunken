@@ -1,4 +1,4 @@
-export class ToolBox {
+export class Tools {
     
     // async foreach
     // reference: https://codeburst.io/javascript-async-await-with-foreach-b6ba62bbf404
@@ -52,8 +52,15 @@ export class ToolBox {
 
     }
 
+    // Put an 's' at the end of a word if num > 0
+    stringMultiplicity(number:number,string:string){
+        
+        return number !== 1 ? string + "s" : string;
+    
+    }
+
     // YYYY-MM-DD HH:ss output.
-    dateTimeToHHss(DateObj:Date) {
+    dateToHHss(DateObj:Date) {
 
         let mm = DateObj.getMonth() + 1,
         dd = DateObj.getDate();
@@ -71,15 +78,8 @@ export class ToolBox {
 
     }
 
-    // Put an 's' at the end of a word if num > 0
-    stringMultiplicity(number:number,string:string){
-        
-        return number !== 1 ? string + "s" : string;
-    
-    }
-
     // Convert string with [number][s/m/h/d] to human readable
-    stringDateSMHDToHuman(string:string) {
+    dateStringToHuman(string:string) {
 
         const matches = string.match(/(\d?\d[dhms])/);
         if(matches) {
@@ -103,7 +103,7 @@ export class ToolBox {
     }
 
     // Convert string with [number][s/m/h/d] to human readable
-    stringDateSMHDToTime(string:string) {
+    dateStringToMS(string:string) {
 
         const matches = string.match(/(\d?\d[dhms])/);
         if(matches) {
@@ -128,9 +128,9 @@ export class ToolBox {
 
     }
 
+    // To Roman Numerals
     // http://blog.stevenlevithan.com/archives/javascript-roman-numeral-converter
-    // 
-    romanize (num:number) {
+    numToRoman (num:number) {
 
         if (isNaN(num))
             return;
@@ -157,4 +157,4 @@ export class ToolBox {
 
 }
 
-export const Tools = new ToolBox();
+export default new Tools();

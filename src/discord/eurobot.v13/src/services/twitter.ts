@@ -1,5 +1,5 @@
 import twitter from "twitter";
-import {Tools} from "../lib/tools";
+import Tools from "../lib/tools";
 import * as Eurobot from "../../types/index.d";
 
 export class Twitter {

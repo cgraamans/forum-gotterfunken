@@ -1,8 +1,8 @@
 import Snoowrap from 'snoowrap';
 
-export class Reddit {
+export class reddit {
 
-    private static instance:Reddit;
+    private static instance:reddit;
 
     public client:Snoowrap;
 
@@ -22,13 +22,13 @@ export class Reddit {
     // Service Instance Initialization
     static getInstance() {
         
-        if (!Reddit.instance) {
-            Reddit.instance = new Reddit();
+        if (!reddit.instance) {
+            reddit.instance = new reddit();
         }
-        return Reddit.instance;
+        return reddit.instance;
 
     }
 
 }
 
-export default Reddit.getInstance();
+export default reddit.getInstance();

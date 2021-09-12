@@ -1,6 +1,6 @@
 import Discord from "./services/discord";
 import * as fs from "fs";
-import { Collection, BaseCommandInteraction } from "discord.js";
+import { BaseCommandInteraction, Collection } from "discord.js";
 
 try {
 
@@ -26,19 +26,16 @@ try {
 Discord.Client.on("interactionCreate",async (interaction:BaseCommandInteraction)=>{
 
     if (!interaction.isCommand()) return;
-
-    console.log("INTERACTION",interaction);
+    console.log(`${interaction.commandName} by ${interaction.user.username}`);
 
     const command = Discord.Client.commands.get(interaction.commandName);
-
-    console.log(command);
 
     if (!command) return;
 
     try {
         await command.execute(interaction);
     } catch (error) {
-        console.error(error);
+        console.error(`>> ${interaction.commandName} by ${interaction.user.username}`,error,`\n`);
         await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
     }
 

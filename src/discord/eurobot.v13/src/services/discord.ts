@@ -1,11 +1,9 @@
 import DB from "./db";
-import * as ClientT from "../../types/discord";
-import * as BotT from "../../types/index";
+import * as Types from "../../types/index";
+import * as TypesDiscordCommand from "../../types/discord";
 
 import {Intents, Message, User, Client, Guild} from "discord.js";
 import * as fs from "fs";
-
-import * as Eurobot from "../../types/index.d";
 
 export class Discord {
 
@@ -15,7 +13,7 @@ export class Discord {
 
     public Timers:NodeJS.Timeout[] = [];
 
-    public Config:Eurobot.Base.Config = {};
+    public Config:Types.Base.Config = {};
 
     private Roles:string[] = [];
 
@@ -102,6 +100,20 @@ export class Discord {
 
     }
 
+    public async auth(message:Message,roles:string[]) {
+
+        let obj:{isAdmin:boolean,isMod:boolean,Auth:string[]} = {
+            isAdmin:false,
+            isMod:false,
+            Auth:[],
+        };
+
+        console.log("Roles",this.Config.Roles.Users);
+
+        return;
+
+    }
+
     // // Get User Warnings
     // public async UserWarnings(user:User,minutes:number = 5):Promise<any> {
 
@@ -131,13 +143,10 @@ export class Discord {
     // }
 
     // is a user authorized for an action?
-    public async isAuthorized(userID:string,guild:Guild,roles:string[]) {
-
-        const user = guild.members.cache.get(userID);
-        if(!user) return;
+    public async Authorized(message:Message,roles:string[]) {
 
         // if(typeof roles === "string") roles = [roles];
-        let RoleCategory:BotT.Base.ConfigRolesUser;
+        let RoleCategory:Types.Base.ConfigRolesUser;
         roles.forEach(role=>{
             // find role name in Config
             const UserRole = this.Config.Roles.Users.find(userRole=>userRole.category === role);
@@ -146,10 +155,10 @@ export class Discord {
         if(!RoleCategory) return false;
 
         // todo: refactor role_id to id
-        const RoleGuild = guild.roles.cache.find(guildRole=>guildRole.id === RoleCategory.role_id);
+        const RoleGuild = message.guild.roles.cache.find(guildRole=>guildRole.id === RoleCategory.role_id);
         if(!RoleGuild) return false;
 
-        const hasRole = user.roles.cache.get(RoleCategory.role_id);
+        const hasRole = message.member.roles.cache.get(RoleCategory.role_id);
         if(hasRole) return true;
 
         return false;

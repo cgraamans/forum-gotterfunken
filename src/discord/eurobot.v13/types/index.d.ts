@@ -56,16 +56,16 @@ export namespace Models {
 
     export namespace News {
 
-        export interface Base {
+        export interface Obj {
 
             subreddit?:Submission[],
             twitter?:any[],
-            row?:NewsRow,
+            row?:Row,
             key?:string
 
         }
 
-        export interface NewsRow {
+        export interface Row {
 
             key:string,
             name?:string,
