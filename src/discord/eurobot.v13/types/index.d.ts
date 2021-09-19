@@ -61,7 +61,7 @@ export namespace Models {
             subreddit?:Submission[],
             twitter?:any[],
             row?:Row,
-            key?:string
+            keyword:string
 
         }
 

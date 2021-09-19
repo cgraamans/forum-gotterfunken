@@ -4,7 +4,7 @@ import Discord from "../services/discord";
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('ping')
+		.setName('thread')
 		.setDescription('Replies with Pong!'),
 	async execute(interaction:BaseCommandInteraction) {
 		await interaction.deferReply();

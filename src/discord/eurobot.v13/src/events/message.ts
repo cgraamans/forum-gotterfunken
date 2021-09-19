@@ -1,7 +1,12 @@
 import { Message } from "discord.js";
 import Discord from "../services/discord";
+import {MessageEmbed, TextChannel, MessageOptions} from "discord.js";
+import TwitterModel from "../models/twitter";
+import Tools from "../lib/tools";
+import * as Types from "../../types/index.d"
 
 module.exports = {
+
 	name: 'messageCreate',
 	async execute(message:Message) {
 
@@ -10,29 +15,60 @@ module.exports = {
 			message.reply({content:`huh :thinking:`});
 		}
 
-		console.log(message);
+		// Routing
+        if(message.channel && Discord.Config.Routes) {
 
-		if(Discord.Authorized(message,["Admin"])) console.log("MSG from Admin");
-		if(Discord.Authorized(message,["Mod"])) console.log("MSG from Admin");
-		if(Discord.Authorized(message,["Twitter"])) console.log("MSG from Admin");
+            let routing = Discord.Config.Routes.filter(route=>route.from === message.channel.id)
+            if(routing.length > 0) {
 
-		// if(Discord.isAuthorized(message.author.id,message.guild,["Twitter"])) message.reply("AUTHORIZED");
+				const embed:MessageEmbed | string = new MessageEmbed()
 
-		// if(message.channel.id === "609511947762925597" && message.content.startsWith("https://")) {
+				embed.setAuthor(message.author.username, message.author.avatarURL())
+                    .setColor(0x003399)
+                    .setFooter(`Via: Forum Götterfunken | https://discord.gg/M2MnDyU`)
+                    .setDescription(message.content);
 
+				const messageAttachment = message.attachments.size > 0 ? message.attachments.first().url : null;
+				if(messageAttachment) embed.setImage(messageAttachment);
 
-			// const ModelTwitter = new ModelTwitterObj();
-			// const post = await ModelTwitter.post(message)
-			// 	.catch(e=>{console.log(e)});
-			
-			// if(post) {
+				let routedMessage:MessageOptions = {};
+                if(message.content.startsWith("https://")) routedMessage.content = message.content;
 
-			// 	console.log("💙 Tweeted "+message.content);
+				routedMessage.embeds = [embed];
 
-			// }
+				routing = routing.filter(route=>route.isActive > 0);
+                Tools.asyncForEach(routing, async (route:Types.Base.ChannelRoute)=>{
+					const channel = Discord.Client.channels.cache.get(route.to);
+					if(channel) await (channel as TextChannel).send(routedMessage);
+                });
 
-		// }
+            }
 
-		// console.log(`MESSAGE`,message);
+        }
+
+		if(message.content.startsWith("https://")) {
+
+			const authorized = await Discord.authorize(message,["Admin","Mod","Twitter"]);
+			if(authorized && authorized.length < 1) return;
+
+			const tweetChannels = Discord.Config.Channels.filter(channel=>channel.category === "Twitter" && channel.channel_id === message.channel.id);
+			if(tweetChannels.length > 0) {
+
+				const ModelTwitter = new TwitterModel();
+
+				const post = await ModelTwitter.post(message)
+					.catch(e=>{console.log(e)});
+
+				if(post) {
+
+					console.log("💙 Tweeted "+message.content);
+	
+				}
+
+			}
+
+		}
+
 	},
+
 };

@@ -1,27 +1,60 @@
-import { BaseCommandInteraction } from "discord.js";
 import NewsModel from "../models/news";
 import { SlashCommandBuilder } from "@discordjs/builders";
+import * as Types from "../../types/index.d"
+
+const data = new SlashCommandBuilder()
+	.setName('news')
+	.setDescription('Retrieves news from the Forum Gotterfunken network');
+
+data.addStringOption(option => 
+	option
+		.setName('source')
+		.setDescription('News Source')
+		.addChoice('/r/EUNews', 'EUNews')
+		.addChoice('/r/EuropeanArmy', 'EuropeanArmy')
+		.addChoice('/r/EuropeanFederalists', 'EuropeanFederalists')
+		.addChoice('/r/EuropeanCulture', 'EuropeanCulture')
+		.addChoice('/r/EuropeanUnion', 'EuropeanUnion')
+		.addChoice('/r/EUSpace', 'EUSpace')
+		.addChoice('/r/EUTech', 'EUSpace')
+		.addChoice('/r/Yurop', 'Yurop')
+);
 
 module.exports = {
 
-	data: new SlashCommandBuilder()
-		.setName('news')
-		.setDescription('Retrieves news from the Forum Gotterfunken network')
-		.addUserOption(option => option.setName('source').setDescription('Keyword')),
+	data: data,
 
-	async execute(interaction:BaseCommandInteraction) {
-
-		await interaction.deferReply();
+	async execute(interaction:any) {
 
 		const news = new NewsModel();
-		interaction.command.options.forEach(option=>{
-			console.log(option);
-		});
 
-		// const results  = await news.get();
+		let newsObj:Types.Models.News.Obj = {keyword:"eunews"};
 
-		await interaction.editReply('Pong!');
+		// keyword
+		let stringOption = interaction.options.getString('source');
+		if(stringOption) newsObj.keyword = stringOption
 
+		// row from db
+		const keywordObjRow = await news.getKeywordObjRow(newsObj.keyword);
+		if(!keywordObjRow) {
+			await interaction.reply({content:`No news for ${newsObj.keyword}, sorry.`,ephemeral:true});
+			return;
+		}
+		newsObj.row = keywordObjRow;
+
+		// get news
+		newsObj = await news.get(newsObj);
+		if(newsObj.subreddit.length < 1 && newsObj.twitter.length < 1) {
+			await interaction.reply({content:`No news for ${newsObj.keyword}, sorry.`,ephemeral:true});
+			return;
+		}
+
+		const embed = news.toRich(newsObj);
+
+		await interaction.reply({embeds:[embed],ephemeral:true});
+
+		return;
+		
 	},
 
 };

@@ -23,9 +23,10 @@ try {
 
 }
 
-Discord.Client.on("interactionCreate",async (interaction:BaseCommandInteraction)=>{
+Discord.Client.on("interactionCreate",async (interaction)=>{
 
     if (!interaction.isCommand()) return;
+
     console.log(`${interaction.commandName} by ${interaction.user.username}`);
 
     const command = Discord.Client.commands.get(interaction.commandName);

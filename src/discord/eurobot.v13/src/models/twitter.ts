@@ -10,7 +10,7 @@ import Types from "../../types/index";
 import db from "../services/db";
 
 
-const Model = class {
+export default class TwitterModel {
 
     constructor() {
 
@@ -117,5 +117,3 @@ const Model = class {
     }
 
 }
-
-export default new Model();

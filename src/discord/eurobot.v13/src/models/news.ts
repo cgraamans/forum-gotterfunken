@@ -15,83 +15,33 @@ export default class NewsModel {
 
     }
 
-    // public async get(key:Types.Models.Message.CommandModel,message:Discord.Message) {
-
-    //     let rtn:Types.Models.News.Obj = {key:"eunews"};
-    //     const ModelMessage = new DiscordModelMessage(message)
-
-    //     const channels = ModelMessage.CommandGetOptionsChannels(command.options);
-    //     if(channels && channels.length > 0) {
-    //         rtn.key = channels[0];
-    //     }
-        
-    //     const filter = ModelMessage.CommandOptionsFilter(command.options);
-    //     if(filter.length > 0) {
-    //         rtn.key = filter[0];
-    //     }
-
-    //     let keyDefList:Types.Models.News.Row[] = await db.q(`
-    //             SELECT * FROM discord_news WHERE \`key\` = ?
-    //         `,
-    //         [rtn.key.toLowerCase()])
-    //         .catch(e=>{console.log(e)});
-
-    //     if(keyDefList.length > 0) {
-
-    //         rtn.row = keyDefList[0];
-
-    //         // Process Subreddit Column Value
-    //         if(rtn.row.subreddit) {
-
-    //             let hot = await reddit.client.getHot(rtn.row.subreddit,{limit:this.maxListSize+2})
-    //                 .catch(e=>{console.log(e)});
-
-    //             if(hot){
-
-    //                 rtn.subreddit = hot;
-                
-    //             }
-
-    //         }
-
-    //     }
-
-    //     return rtn;
-
-    // }
-
-    // TODO: Function for raw output to replace keydeflist in get
-    public async get(key:string) {
-
-        let rtn:Types.Models.News.Obj = {key:key};
+    public async getKeywordObjRow(keyword:string) {
 
         const keyDefList:Types.Models.News.Row[] = await db.q(`
                 SELECT * FROM discord_news WHERE \`key\` = ?
             `,
-            [rtn.key.toLowerCase()])
+            [keyword.toLowerCase()])
             .catch(e=>{console.log(e)});
 
-        if(keyDefList.length > 0) {
+        if(keyDefList.length > 0) return keyDefList[0];
+        
+        return;
 
-            rtn.row = keyDefList[0];
+    }
 
-            // Process Subreddit Column Value
-            if(rtn.row.subreddit) {
+    // TODO: Function for raw output to replace keydeflist in get
+    public async get(obj:Types.Models.News.Obj) {
 
-                let hot = await reddit.client.getHot(rtn.row.subreddit,{limit:this.maxListSize+2})
-                    .catch(e=>{console.log(e)});
+        let hot = await reddit.client.getHot(obj.keyword,{limit:this.maxListSize+2})
+            .catch(e=>{console.log(e)});
 
-                if(hot){
+        if(hot){
 
-                    rtn.subreddit = hot;
-                
-                }
-
-            }
-
+            obj.subreddit = hot;
+        
         }
 
-        return rtn;
+        return obj;
 
     }
 
@@ -101,7 +51,7 @@ export default class NewsModel {
 
         if(!news.row) return;
 
-        let name = news.key
+        let name = news.keyword
 
         if(news.row.subreddit) name = news.row.subreddit;
         if(news.row.name) name = news.row.name;
@@ -111,6 +61,7 @@ export default class NewsModel {
 
         let text = ``;
 
+        // subreddits
         if(news.subreddit && news.subreddit.length > 0) {
 
             let embed = new Discord.MessageEmbed()

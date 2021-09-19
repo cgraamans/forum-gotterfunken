@@ -2,10 +2,10 @@ import DB from "./db";
 import * as Types from "../../types/index";
 import * as TypesDiscordCommand from "../../types/discord";
 
-import {Intents, Message, User, Client, Guild} from "discord.js";
+import {Intents, Message, User, Client, Guild, Role} from "discord.js";
 import * as fs from "fs";
 
-export class Discord {
+class Discord {
 
     private static instance:Discord;
 
@@ -16,6 +16,8 @@ export class Discord {
     public Config:Types.Base.Config = {};
 
     private Roles:string[] = [];
+
+    private key:string = process.env.EUCOBOT;
 
     // Service Instance Initialization
     static getInstance() {
@@ -35,10 +37,21 @@ export class Discord {
             // CONFIG
             //
 
-            this.Client = new Client({ intents: [Intents.FLAGS.GUILDS,Intents.FLAGS.GUILD_MESSAGES]});
+            // INIT DISCORD CLIENT
+            this.Client = new Client({ 
+                intents: [
+                    Intents.FLAGS.GUILDS,
+                    Intents.FLAGS.GUILD_MESSAGES,
+                    Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+                    Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS
+                ]
+            });
 
+            // FILL CONFIG
             this.getConfig().then(()=>{
 
+                console.log('Processing discord event files...')
+                // get events and set client on/once for each event
                 const eventFiles = fs.readdirSync(`${__dirname}/../events`).filter(file=>!file.endsWith('.map'));
 
                 for (const file of eventFiles) {
@@ -50,31 +63,33 @@ export class Discord {
                     }
                 }
 
-            }).catch(e=>{console.log(e)});
-
-                // 
-                // DISCORD CLIENT
-                //
-                // Queue events
-
+                // error
                 this.Client.on("error",e=>{
 
-                    console.log("Discord Service Client Error");
-                    throw e;
-
-                });
-
-                this.Client.on('disconnect',(message:Message)=>{
-
-                    if(message) console.log("Disconnected",message);
-
+                    console.log("!! Discord Service Client Error",e);
                     setTimeout(()=>{
-                        this.Client.login(process.env.EUROBOT_DISCORD)
+                        console.log(`Logging into Discord...`);
+                        this.Client.login(this.key);
                     },15000);
                 
                 });
+
+                // disconnect
+                this.Client.on('disconnect',(message:Message)=>{
+
+                    if(message) console.log("!! Disconnected from Discord",message);
+                    setTimeout(()=>{
+                        console.log(`Logging into Discord...`);
+                        this.Client.login(this.key);
+                    },15000);
                 
-                this.Client.login(process.env.EUCOBOT);
+                });
+
+                // login
+                console.log(`Logging into Discord...`);
+                this.Client.login(this.key);
+
+            }).catch(e=>{console.log(e)});
 
         } catch(e) {
 
@@ -86,6 +101,8 @@ export class Discord {
 
     // Retrieve configs from database for constructor
     private async getConfig() {
+
+        console.log(`Retrieving Config...`)
 
         this.Config.Routes = await DB.q("SELECT * FROM discord_conf_routes").catch(e=>{throw e});
         this.Config.BadWords = await DB.q("SELECT * FROM discord_conf_badwords").catch(e=>{throw e});
@@ -100,69 +117,35 @@ export class Discord {
 
     }
 
-    public async auth(message:Message,roles:string[]) {
-
-        let obj:{isAdmin:boolean,isMod:boolean,Auth:string[]} = {
-            isAdmin:false,
-            isMod:false,
-            Auth:[],
-        };
-
-        console.log("Roles",this.Config.Roles.Users);
-
-        return;
-
-    }
-
-    // // Get User Warnings
-    // public async UserWarnings(user:User,minutes:number = 5):Promise<any> {
-
-    //     return await DB.q(`
-        
-    //         SELECT * FROM discord_user_warnings 
-    //         WHERE user_id = ?
-    //         AND dt > ?
-        
-    //     `,[user.id,(new Date().getTime() - (minutes * 60000))]);
-    
-    // }
-
-    // public async UserWarningAdd(user:User, reason:string|null = null) {
-
-    //     return await DB.q(`
-
-    //         INSERT INTO discord_user_warnings
-    //         SET ?
-
-    //     `,[{
-    //         user_id:user.id,
-    //         dt:(new Date().getTime()),
-    //         reason:reason
-    //     }]);
-
-    // }
-
     // is a user authorized for an action?
-    public async Authorized(message:Message,roles:string[]) {
+    public async authorize(message:Message,roles:string[]) {
 
-        // if(typeof roles === "string") roles = [roles];
-        let RoleCategory:Types.Base.ConfigRolesUser;
+        let userRoles:Types.Base.ConfigRolesUser[] = [];
+        let userRoleList:Role[] = [];
+
+        // Which Available Roles Correspond to the requested ones
         roles.forEach(role=>{
-            // find role name in Config
-            const UserRole = this.Config.Roles.Users.find(userRole=>userRole.category === role);
-            if(UserRole) RoleCategory = UserRole;
+            const UserRole = this.Config.Roles.Users.find(userRole=>userRole.category === role)
+            if(UserRole) userRoles.push(UserRole);
         });
-        if(!RoleCategory) return false;
 
-        // todo: refactor role_id to id
-        const RoleGuild = message.guild.roles.cache.find(guildRole=>guildRole.id === RoleCategory.role_id);
-        if(!RoleGuild) return false;
+        // None of the roles exist
+        if(userRoles.length < 1) return;
 
-        const hasRole = message.member.roles.cache.get(RoleCategory.role_id);
-        if(hasRole) return true;
+        userRoles.forEach(userRole=>{
 
-        return false;
-        
+            const RoleGuild = message.guild.roles.cache.find(guildRole=>guildRole.id === userRole.role_id);
+            if(RoleGuild) {
+
+                const hasRole = message.member.roles.cache.get(userRole.role_id);
+                if(hasRole) userRoleList.push(hasRole);
+
+            }
+
+        });
+
+        return userRoleList;    
+
     }
 
 }
