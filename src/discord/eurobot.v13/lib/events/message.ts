@@ -2,7 +2,7 @@ import discord from "../services/discord";
 import {Message,MessageEmbed, TextChannel, MessageOptions} from "discord.js";
 import TwitterModel from "../models/twitter";
 import DiscordModel from "../models/discord";
-import Tools from "../lib/tools";
+import Tools from '../tools';
 import {Eurobot} from "../../types/index.d"
 import * as os from 'os';
 

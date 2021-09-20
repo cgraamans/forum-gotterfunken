@@ -2,10 +2,10 @@
   "name": "eurobot",
   "version": "2.0.0",
   "description": "eurobot using discord.js v13",
-  "main": "index.js",
+  "main": "eurobot.js",
   "scripts": {
-    "start": "npx ts-node-dev --respawn --transpile-only src/index.ts",
-    "test": "npx tslint -c tslint.json 'src/**/*.ts'",
+    "start": "npx ts-node-dev --respawn --transpile-only eurobot.ts",
+    "test": "npx tslint -c tslint.json '**/**/*.ts'",
     "build": "tsc"
   },
   "author": "C.Graamans",

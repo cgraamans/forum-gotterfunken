@@ -3,14 +3,15 @@ import {REST} from '@discordjs/rest';
 import {Routes} from 'discord-api-types/v9';
 
 const commands = [];
-const commandFiles = fs.readdirSync('./commands').filter(file=>!file.endsWith(".map"));
+
+const commandFiles = fs.readdirSync('./lib/commands').filter(file=>!file.endsWith(".map"));
 
 // Place your client and guild ids here
 const clientId = '736008030532927599';
 const guildId = '633016043136090124';
 
 for (const file of commandFiles) {
-	const command = require(`./commands/${file}`);
+	const command = require(`./lib/commands/${file}`);
 	commands.push(command.data.toJSON());
 }
 

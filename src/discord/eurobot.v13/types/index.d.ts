@@ -95,7 +95,21 @@ export namespace Eurobot {
             data:Buffer
         }
     
-    }   
+    }
+
+    export namespace Calendar {
+
+        export interface Span {
+            human:string
+            range:Calendar.Range
+        }
+
+        export interface Range {
+            from:Date
+            to?:Date
+        }
+
+    }
 
     // OLD MODELS FOR REFERENCE
     export namespace Models {

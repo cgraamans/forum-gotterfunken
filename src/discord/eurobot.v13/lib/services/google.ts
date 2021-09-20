@@ -1,6 +1,7 @@
 import privatekey from "../../conf/google/Eurobot-Calendar-1c54f0456b16.json"
-import {google} from "googleapis";
+import {google, calendar_v3} from "googleapis";
 import {calendar as CalendarOptions} from "../../conf/google/options.json"
+import {Eurobot} from "../../types/index";
 
 export class Google {
 
@@ -8,7 +9,7 @@ export class Google {
 
     private jwtClient:any;
 
-    public calendar:any;
+    public calendar:calendar_v3.Calendar;
 
     constructor() {
 
@@ -49,10 +50,7 @@ export class Google {
     }
 
     // Retrieve Google Calendar
-    public Calendar(from?:Date,to?:Date):Promise<any> {
-
-        if(!from) from = new Date(new Date().setHours(0,0,0,0));
-        if(!to) to = new Date(from.getTime() + (86400000 -1));;
+    public Calendar(range:Eurobot.Calendar.Range):Promise<any> {
 
         return new Promise((resolve,reject)=>{
 
@@ -60,8 +58,8 @@ export class Google {
             
                 auth: this.jwtClient,
                 calendarId: CalendarOptions.calendarID,
-                timeMin:from,
-                timeMax:to,
+                timeMin:range.from.toString(),
+                timeMax:range.to.toString(),
                 singleEvents:true,
                 orderBy:"startTime"
                 

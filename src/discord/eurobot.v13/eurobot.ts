@@ -1,4 +1,4 @@
-import Discord from "./services/discord";
+import Discord from "./lib/services/discord";
 import * as fs from "fs";
 import { Collection } from "discord.js";
 
@@ -10,10 +10,10 @@ try {
 
     console.log(__dirname);
 
-    const commandFiles = fs.readdirSync(__dirname+'/commands').filter(file=>!file.endsWith(".map"));
+    const commandFiles = fs.readdirSync(__dirname+'/lib/commands').filter(file=>!file.endsWith(".map"));
 
     for (const file of commandFiles) {
-        const command = require(`${__dirname}/commands/${file}`);
+        const command = require(`${__dirname}/lib/commands/${file}`);
         Discord.Client.commands.set(command.data.name, command);
     }
 

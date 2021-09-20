@@ -3,7 +3,7 @@ import * as FileType from "file-type"
 import * as https from "https";
 
 import Twitter from "../services/twitter";
-import Tools from '../lib/tools';
+import Tools from '../tools';
 
 import {Eurobot} from "../../types/index";
 
