@@ -3,7 +3,7 @@ import Discord from "discord.js";
 import discord from "../services/discord";
 import reddit from "../services/reddit";
 import Tools from '../lib/tools';
-import * as Types from "../../types/index.d"
+import {Eurobot} from "../../types/index.d"
 
 export default class NewsModel {
 
@@ -17,7 +17,7 @@ export default class NewsModel {
 
     public async getKeywordObjRow(keyword:string) {
 
-        const keyDefList:Types.Models.News.Row[] = await db.q(`
+        const keyDefList:Eurobot.News.Row[] = await db.q(`
                 SELECT * FROM discord_news WHERE \`key\` = ?
             `,
             [keyword.toLowerCase()])
@@ -30,7 +30,7 @@ export default class NewsModel {
     }
 
     // TODO: Function for raw output to replace keydeflist in get
-    public async get(obj:Types.Models.News.Obj) {
+    public async get(obj:Eurobot.News.Obj) {
 
         let hot = await reddit.client.getHot(obj.keyword,{limit:this.maxListSize+2})
             .catch(e=>{console.log(e)});
@@ -47,7 +47,7 @@ export default class NewsModel {
 
     // Convert news to rich output
     // toRich
-    public toRich(news:Types.Models.News.Obj) {
+    public toRich(news:Eurobot.News.Obj) {
 
         if(!news.row) return;
 

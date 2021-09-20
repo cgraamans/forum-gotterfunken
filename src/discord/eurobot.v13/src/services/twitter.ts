@@ -1,6 +1,6 @@
 import twitter from "twitter";
 import Tools from "../lib/tools";
-import * as Eurobot from "../../types/index.d";
+import {Eurobot} from "../../types/index.d";
 
 export class Twitter {
 
@@ -36,7 +36,7 @@ export class Twitter {
     }
 
     // post twitter message with media object
-    public async post(message:string,media?:Eurobot.Models.Twitter.MediaObj[]) {
+    public async post(message:string,media?:Eurobot.Twitter.MediaObj[]) {
 
         let params:{status:string,media_ids?:string} = {status:message};
 
@@ -44,7 +44,7 @@ export class Twitter {
 
             let mediaIds:string[];
 
-            await Tools.asyncForEach(media,async (mediaObj:Eurobot.Models.Twitter.MediaObj)=>{
+            await Tools.asyncForEach(media,async (mediaObj:Eurobot.Twitter.MediaObj)=>{
 
                 const mediaId = await this.initUpload(mediaObj.size,mediaObj.type).catch(e=>{throw e});
 

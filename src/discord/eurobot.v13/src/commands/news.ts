@@ -1,6 +1,6 @@
 import NewsModel from "../models/news";
 import { SlashCommandBuilder } from "@discordjs/builders";
-import * as Types from "../../types/index.d"
+import {Eurobot} from "../../types/index.d"
 
 const data = new SlashCommandBuilder()
 	.setName('news')
@@ -28,7 +28,7 @@ module.exports = {
 
 		const news = new NewsModel();
 
-		let newsObj:Types.Models.News.Obj = {keyword:"eunews"};
+		let newsObj:Eurobot.News.Obj = {keyword:"eunews"};
 
 		// keyword
 		let stringOption = interaction.options.getString('source');

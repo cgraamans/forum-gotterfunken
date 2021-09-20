@@ -1,58 +1,67 @@
 import { Submission } from 'snoowrap';
-import Discord from 'discord.js';
+import { GuildEmoji, Role, User } from 'discord.js';
 
-export namespace Base {
+export namespace Eurobot {
 
     export interface Config {
         BadWords?:string[],
-        Channels?:ConfigChannel[],
-        Reactions?:ConfigReaction[],
-        Roles?:RolesCountries,
-        Routes?:ChannelRoute[]
+        Channels?:Channel[],
+        Reactions?:Reaction[],
+        Roles?:Roles.Countries,
+        Routes?:Route[]
     }
 
-    export interface ConfigRolesCountry {
-        alias:string,
-        role_id:string,
-        emoji:string,
-        
-        toggle_result?:number,
-        toggle_role?:Discord.Role
+    export namespace Roles {
+
+        export interface Country {
+            alias:string,
+            role_id:string,
+            emoji:string,
+            
+            toggle_result?:number,
+            toggle_role?:Role
+    
+        }
+    
+        export interface User {
+            role_id:string,
+            category:string,
+            user_level:number
+        }
+
+        export interface Countries {
+            Countries:Roles.Country[],
+            Users:Roles.User[]
+        }
 
     }
 
-    export interface ConfigRolesUser {
-        role_id:string,
-        category:string,
-        user_level:number
-    }
-
-    export interface ConfigReaction {
+    export interface Reaction {
         reaction:string,
         category:string
     }
 
-    export interface ConfigChannel {
+    export interface Channel {
         channel_id:string,
         category:string
     }
 
-    export interface RolesCountries {
-        Countries:ConfigRolesCountry[],
-        Users:ConfigRolesUser[]
-    }
-
-    export interface ChannelRoute {
+    export interface Route {
 
         from:string,
         to:string,
         isActive:number
 
     }
-
-}
-
-export namespace Models {
+    
+    export namespace Message {
+        
+        export interface Comment {
+            emoji?:GuildEmoji,
+            category?:string,random?:boolean
+        }
+    
+    }
 
     export namespace News {
 
@@ -77,65 +86,60 @@ export namespace Models {
         }
 
     }
-
-    export namespace Polls {
-
-        export interface Poll {
-    
-            author:string,
-            channel:string,
-            end:number,
-            start:number
-            text:string,
-    
-            message?:string,
-            results?:PollResultTotals
-            user?:Discord.User
-    
-        }
-    
-        export interface PollResults {
-    
-            totals:PollResultTotals
-            up?:string[],
-            down?:string[],
-            shrug?:string[]
-    
-        }
-    
-        export interface PollResultTotals {
-                "up":number,
-                "down":number,
-                "shrug":number,
-        }
-    
-        export interface PollResultDBTotal {
-    
-            vote:string,
-            num:number
-    
-        }
-    
-    }
-    
-    export namespace Message {
-    
-        export interface CommandModel {
-            string:string,
-            options?:string[]
-        }
-    
-    }
-    
+        
     export namespace Twitter {
-    
+        
         export interface MediaObj {
             size:string,
             type:string,
             data:Buffer
         }
     
+    }   
+
+    // OLD MODELS FOR REFERENCE
+    export namespace Models {
+
+        export namespace Polls {
+
+            export interface Poll {
+        
+                author:string,
+                channel:string,
+                end:number,
+                start:number
+                text:string,
+        
+                message?:string,
+                results?:PollResultTotals
+                user?:User
+        
+            }
+        
+            export interface PollResults {
+        
+                totals:PollResultTotals
+                up?:string[],
+                down?:string[],
+                shrug?:string[]
+        
+            }
+        
+            export interface PollResultTotals {
+                    "up":number,
+                    "down":number,
+                    "shrug":number,
+            }
+        
+            export interface PollResultDBTotal {
+        
+                vote:string,
+                num:number
+        
+            }
+        
+        }
+
     }
 
 }
-

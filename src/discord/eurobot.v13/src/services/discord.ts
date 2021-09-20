@@ -1,5 +1,5 @@
 import DB from "./db";
-import * as Types from "../../types/index";
+import {Eurobot} from "../../types/index";
 import * as TypesDiscordCommand from "../../types/discord";
 
 import {Intents, Message, User, Client, Guild, Role} from "discord.js";
@@ -13,7 +13,7 @@ class Discord {
 
     public Timers:NodeJS.Timeout[] = [];
 
-    public Config:Types.Base.Config = {};
+    public Config:Eurobot.Config = {};
 
     private Roles:string[] = [];
 
@@ -120,7 +120,7 @@ class Discord {
     // is a user authorized for an action?
     public async authorize(message:Message,roles:string[]) {
 
-        let userRoles:Types.Base.ConfigRolesUser[] = [];
+        let userRoles:Eurobot.Roles.User[] = [];
         let userRoleList:Role[] = [];
 
         // Which Available Roles Correspond to the requested ones

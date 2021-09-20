@@ -1,6 +1,6 @@
 import Discord from "./services/discord";
 import * as fs from "fs";
-import { BaseCommandInteraction, Collection } from "discord.js";
+import { Collection } from "discord.js";
 
 try {
 

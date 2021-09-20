@@ -5,7 +5,7 @@ import * as https from "https";
 import Twitter from "../services/twitter";
 import Tools from '../lib/tools';
 
-import Types from "../../types/index";
+import {Eurobot} from "../../types/index";
 
 import db from "../services/db";
 
@@ -59,7 +59,7 @@ export default class TwitterModel {
         const hasTweet = await db.q("SELECT * FROM discord_tweets WHERE text = ?",[text]);
         if(hasTweet.length > 0) return;
 
-        let media:Types.Models.Twitter.MediaObj[] = [];
+        let media:Eurobot.Twitter.MediaObj[] = [];
         let discordUserID = message.author.id;
         if(user) discordUserID = user.id;
 
