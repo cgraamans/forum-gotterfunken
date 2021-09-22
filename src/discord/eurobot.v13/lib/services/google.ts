@@ -9,12 +9,9 @@ export class Google {
 
     private jwtClient:any;
 
-    public calendar:calendar_v3.Calendar;
+    public calendar:any = google.calendar("v3");
 
     constructor() {
-
-        //Google Calendar API
-        this.calendar = google.calendar("v3");
 
         // configure a Google JWT auth client
         this.jwtClient = new google.auth.JWT(
@@ -30,7 +27,7 @@ export class Google {
         this.jwtClient.authorize(function (err:any, tokens:any) {
 
             if (err) {
-                throw err;
+                throw {err};
             } else {
                 console.log("Successfully connected to Google API");
             }
@@ -58,8 +55,8 @@ export class Google {
             
                 auth: this.jwtClient,
                 calendarId: CalendarOptions.calendarID,
-                timeMin:range.from.toString(),
-                timeMax:range.to.toString(),
+                timeMin:range.from,
+                timeMax:range.to,
                 singleEvents:true,
                 orderBy:"startTime"
                 

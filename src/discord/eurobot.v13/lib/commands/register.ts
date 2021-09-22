@@ -1,24 +1,15 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { BaseCommandInteraction } from "discord.js";
-import Discord from "../services/discord";
+import discord from "../services/discord";
+
+const data = new SlashCommandBuilder()
+	.setName('register')
+	.setDescription('Register as active');
 
 module.exports = {
-	data: new SlashCommandBuilder()
-		.setName('thread')
-		.setDescription('Replies with Pong!'),
+	data: data,
 	async execute(interaction:BaseCommandInteraction) {
 		await interaction.deferReply();
-
-            // new
-
-            // unarchive <thread name?>
-
-            // archive
-
-            // delete
-
 		await interaction.editReply('Pong!');
-
 	},
-
 };

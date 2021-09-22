@@ -28,9 +28,9 @@ export default class DiscordModel {
         let comment:string;
         // comment order
         if(Math.random() < 0.5) {
-            comment = Reaction.reaction + `${options.emoji ? options.emoji : ""}`;
+            comment = Reaction.reaction + ` ${options.emoji ? options.emoji : ""}`;
         } else {
-            comment = `${options.emoji ? options.emoji : ""}` + Reaction.reaction;
+            comment = `${options.emoji ? options.emoji + " " : ""}` + Reaction.reaction;
         }
 
         return comment;

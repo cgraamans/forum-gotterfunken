@@ -14,7 +14,8 @@ data.addStringOption(option =>
 		.setDescription('Number of days')
 		.addChoice('today', 'today')
 		.addChoice('tomorrow', 'tomorrow')
-		.addChoice('next 7 days', 'week')
+		.addChoice('7 days', '7d')
+		.addChoice('14 days', '14d')
 );
 
 module.exports = {
@@ -35,9 +36,9 @@ module.exports = {
 
 		let embed = model.toRich(items,span);
 
+		interaction.reply({embeds:[embed],ephemeral:true});
+
 		return;
-
-
 
 	},
 };
