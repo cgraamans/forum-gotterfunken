@@ -2,7 +2,7 @@ import {calendar as CalendarOptions} from "../../conf/google/options.json"
 import Discord from "discord.js";
 import Tools from '../tools';
 import {Eurobot} from "../../types/index";
-import {calendar_v3} from "googleapis";
+import db from "../services/db";
 
 export class Calendar {
 
@@ -121,5 +121,34 @@ export class Calendar {
                 .setFooter(footer);
 
     } // toRich
+
+    // Create rich message from Event
+    //toRichEvent
+    public toRichEvent(event:any) {
+
+        let description = "";
+        if(event.description) description = `${event.description}\n`;
+          
+        return new Discord.MessageEmbed()
+        .setTitle(`🇪🇺 Event Starting!`)
+        .setDescription(`🔹**${event.summary}**\n${description}\n\nStarts: ${event.start.dateTime}\nEnds: ${event.end.dateTime}`)
+        .setColor(0xFFCC00)
+
+    } //toRichEvent
+
+    // Get Calendar log for ID from table 
+    // getCalendarLogID
+    public async getLogID(id:string) {
+
+        const ids:any[] = await db.q(`SELECT * FROM calendar_log WHERE id = ?`,[id]);
+        console.log(ids);
+        if(ids && ids.length > 0) return ids[0];
+        return;
+
+    } // getCalendarLogID
+
+    public async postLogID(eventID:string) {
+        return await db.q(`INSERT INTO calendar_log SET ?`,[{id:eventID}]);
+    }
 
 }

@@ -1,12 +1,13 @@
-import { SlashCommandBuilder, } from "@discordjs/builders";
+import { SlashCommandBuilder } from "@discordjs/builders";
 import discord from "../services/discord";
 import google from "../services/google";
 import {Calendar} from  "../models/google";
 import {Eurobot} from "../../types/index";
+import { CommandInteraction } from "discord.js";
 
 const data = new SlashCommandBuilder()
-	.setName('calendar')
-	.setDescription('Get the Götterfunken calendar');
+	.setName('events')
+	.setDescription('Get the Götterfunken events calendar');
 
 data.addStringOption(option => 
 	option
@@ -22,7 +23,7 @@ module.exports = {
 
 	data: data,
 
-	async execute(interaction:any) {
+	async execute(interaction:CommandInteraction) {
 
 		const model = new Calendar();
 
@@ -32,7 +33,9 @@ module.exports = {
 		if(stringOption) timespan = stringOption;
 
 		const span:Eurobot.Calendar.Span = model.textToUnixTimeRange(timespan);
-		const items = await google.Calendar(span.range)
+		let items:any[] = await google.Calendar(span.range)
+
+		items = items.filter(item=>item.start.dateTime)
 
 		let embed = model.toRich(items,span);
 

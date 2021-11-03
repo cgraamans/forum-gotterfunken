@@ -1,6 +1,7 @@
 import NewsModel from "../models/news";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import {Eurobot} from "../../types/index.d"
+import { CommandInteraction } from "discord.js";
 
 const data = new SlashCommandBuilder()
 	.setName('news')
@@ -24,7 +25,7 @@ module.exports = {
 
 	data: data,
 
-	async execute(interaction:any) {
+	async execute(interaction:CommandInteraction) {
 
 		const news = new NewsModel();
 

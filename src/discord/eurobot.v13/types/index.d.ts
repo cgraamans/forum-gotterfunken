@@ -17,6 +17,7 @@ export namespace Eurobot {
             alias:string,
             role_id:string,
             emoji:string,
+            isAlias:number|null,
             
             toggle_result?:number,
             toggle_role?:Role

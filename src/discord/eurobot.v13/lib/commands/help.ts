@@ -1,12 +1,12 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
-import { BaseCommandInteraction, Interaction, MessageEmbed } from "discord.js";
+import { CommandInteraction, MessageEmbed } from "discord.js";
 import discord from "../services/discord";
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('help')
 		.setDescription('Get help!'),
-	async execute(interaction:BaseCommandInteraction) {
+	async execute(interaction:CommandInteraction) {
 
 		const emoji = interaction.guild.emojis.cache.random();
 
@@ -14,18 +14,24 @@ module.exports = {
 			.setTitle(`🇪🇺 Eurobot Help`)
 			.setColor(0xFFCC00)
 			.setFooter(`Find me on https://twitter.com/eunewsbot `)
-			.setDescription(`\`\`\`
+			.setDescription(`${emoji}
+\`\`\`
+	
 	/help - this help
 	/ping - test the bot
 
+	/topics - get current topics
 	/news - get news
-	/calendar - get calendar
 
-	/country - set your country
-	/register - get the registered role\`\`\`
-	${emoji}
-	`)
+	/calendar - list calendar entries
+	/events - list events
+
+	/country - list countries
+
+\`\`\`
+			`);
 
 		await interaction.reply({embeds:[embed],ephemeral:true});
+		
 	},
 };

@@ -14,11 +14,15 @@ export class DB {
             database:process.env.EUROBOT_DB,
             host:'localhost',
             multipleStatements: true,
-            charset:'utf8mb4'
+            charset:'utf8mb4',
+            connectionLimit : 1000,
+            connectTimeout  : 60 * 60 * 1000,
+            acquireTimeout  : 60 * 60 * 1000,
+            timeout         : 60 * 60 * 1000,
         });
 
         this.Pool.on('error', (err) => {
-            console.error('Unexpected error on idle client', err)
+            console.error('Unexpected error on idle client', err)   
             process.exit(-1)
         });
 

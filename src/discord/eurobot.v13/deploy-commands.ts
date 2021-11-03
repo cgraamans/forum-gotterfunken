@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import {REST} from '@discordjs/rest';
 import {Routes} from 'discord-api-types/v9';
+import discord from "./lib/services/discord";
 
 const commands = [];
 
@@ -8,7 +9,14 @@ const commandFiles = fs.readdirSync('./lib/commands').filter(file=>!file.endsWit
 
 // Place your client and guild ids here
 const clientId = '736008030532927599';
-const guildId = '637843781617713172';
+// FG
+// const guildId = '257838262943481857';
+
+// EP
+// const guildId = '637843781617713172';
+
+// FG-E
+const guildId = '633016043136090124';
 
 for (const file of commandFiles) {
 	const command = require(`./lib/commands/${file}`);
