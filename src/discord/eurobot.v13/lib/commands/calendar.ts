@@ -1,8 +1,9 @@
 import { SlashCommandBuilder, } from "@discordjs/builders";
 import discord from "../services/discord";
 import google from "../services/google";
-import {Calendar} from  "../models/google";
+import {CalendarModel} from  "../models/google";
 import {Eurobot} from "../../types/index";
+import { MessageEmbed } from "discord.js";
 
 const data = new SlashCommandBuilder()
 	.setName('calendar')
@@ -24,9 +25,8 @@ module.exports = {
 
 	async execute(interaction:any) {
 
-		const model = new Calendar();
+		const model = new CalendarModel();
 
-		// keyword
 		let timespan = "7d"
 		const stringOption = interaction.options.getString('timespan');
 		if(stringOption) timespan = stringOption;
@@ -34,7 +34,14 @@ module.exports = {
 		const span:Eurobot.Calendar.Span = model.textToUnixTimeRange(timespan);
 		const items = await google.Calendar(span.range)
 
-		let embed = model.toRich(items,span);
+		const calendar = model.toStringCalendar(items,span)
+
+		let calendarDescription:string = `Calendar for ${span.human}\n\n`;
+
+		const embed = new MessageEmbed()
+			.setTitle(`🇪🇺 Eurobot Calendar`)
+			.setDescription(calendarDescription + calendar)
+			.setColor(0x001489);
 
 		interaction.reply({embeds:[embed],ephemeral:true});
 

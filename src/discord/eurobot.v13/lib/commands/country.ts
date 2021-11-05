@@ -1,6 +1,7 @@
 import { SlashCommandBuilder, SlashCommandStringOption } from "@discordjs/builders";
-import { MessageEmbed, CommandInteraction } from "discord.js";
+import { MessageEmbed, CommandInteraction, Role } from "discord.js";
 import discord from "../services/discord";
+import {Eurobot} from "../../types/index";
 
 const data = new SlashCommandBuilder()
 	.setName('country')
@@ -16,6 +17,8 @@ data.addStringOption((option:SlashCommandStringOption)=>{
 module.exports = {
 	data: data,
 	async execute(interaction:CommandInteraction) {
+
+		if(!interaction.guild) return;
 
 		const embed = new MessageEmbed();
 		embed.setColor(0x001489);
@@ -57,26 +60,61 @@ module.exports = {
 
 		}
 
-		console.log(countryObjs);
-
 		
-		const countryObj = countryObjs[0];
-		const role = interaction.guild.roles.cache.find(role=>role.id === countryObj.role_id);
-		if(!role) {
+		let countryObj:Eurobot.Roles.Country;
+		let role:Role;
+
+		countryObjs.forEach(cObj=>{
+			
+			const guildRole = interaction.guild.roles.cache.get(cObj.role_id);
+			if(guildRole) {
+				role = guildRole;
+				countryObj = cObj;
+			}
+
+		});
+
+		if(!role || !countryObj) {
 
 			embed.setDescription(`Country role not found.`);
 
 			await interaction.reply({embeds:[embed],ephemeral:true});
 
 			return;
-			
-		}
-		
-		// interaction.guild.members.cache.find
-		
-		await interaction.deferReply();
-		await interaction.editReply('Pong!');
 
+		}
+
+		const user = interaction.guild.members.cache.get(interaction.member.user.id);
+		let direction = `Added`;
+
+		if(user.roles.cache.get(role.id)) {
+
+			user.roles.remove(role);
+			direction = `Removed`;
+		
+		} else {
+
+			user.roles.add(role);
+		
+		}
+
+		if(interaction.guild.id === "257838262943481857" && !user.roles.cache.get("581605959990771725")) {
+
+			user.roles.add("581605959990771725");
+			const general = interaction.guild.channels.cache.get("257838262943481857");
+
+			if(general && general.isText()) {
+				general.send(`Welcome to Forum Gotterfunken, <@${user.id}>!`);
+			}
+
+		}
+
+		embed.setDescription(`**${direction}**\n${countryObj.emoji} ${countryObj.alias}`);
+
+		await interaction.reply({embeds:[embed],ephemeral:true});
+
+		return;
+	
 	},
 
 };

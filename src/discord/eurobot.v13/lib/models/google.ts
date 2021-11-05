@@ -4,7 +4,7 @@ import Tools from '../tools';
 import {Eurobot} from "../../types/index";
 import db from "../services/db";
 
-export class Calendar {
+export class CalendarModel {
 
     constructor() {}
 
@@ -60,17 +60,14 @@ export class Calendar {
 
     } // CalendarUnixTimes
 
-    // Convert items from google calendar service to rich output
-    // toRich
-    public toRich(items:any[],span:Eurobot.Calendar.Span):Discord.MessageEmbed|null {
-
-            let calendarDescription:string = `Calendar for ${span.human}\n\n`;
+    // toStringCalendar items from google calendar service to string for rich output
+    public toStringCalendar(items:any[],span:Eurobot.Calendar.Span):string {
 
             let footer = "";
             if(items.length > CalendarOptions.maxItems) {
             
                 let LenPos = items.length - CalendarOptions.maxItems;
-                footer = `... and ${LenPos} more.\n\n`;
+                footer = `\n... and ${LenPos} more.`;
                 items.splice((-1 * LenPos),LenPos);
 
             }
@@ -108,40 +105,21 @@ export class Calendar {
         
                     if(item.description) description = `${item.description}\n`;
         
-                    calendar += `🔹**${item.summary}**\n${dateString}\n${description}\n`;    
+                    calendar += `🔹**${item.summary}**\n${dateString}\n${description}`;    
 
                 }
     
             };
                     
-            return new Discord.MessageEmbed()
-                .setTitle(`🇪🇺 Eurobot Calendar`)
-                .setDescription(calendarDescription + calendar)
-                .setColor(0xFFCC00)
-                .setFooter(footer);
+            return calendar;
 
-    } // toRich
-
-    // Create rich message from Event
-    //toRichEvent
-    public toRichEvent(event:any) {
-
-        let description = "";
-        if(event.description) description = `${event.description}\n`;
-          
-        return new Discord.MessageEmbed()
-        .setTitle(`🇪🇺 Event Starting!`)
-        .setDescription(`🔹**${event.summary}**\n${description}\n\nStarts: ${event.start.dateTime}\nEnds: ${event.end.dateTime}`)
-        .setColor(0xFFCC00)
-
-    } //toRichEvent
+    } // toStringCalendar
 
     // Get Calendar log for ID from table 
     // getCalendarLogID
     public async getLogID(id:string) {
 
         const ids:any[] = await db.q(`SELECT * FROM calendar_log WHERE id = ?`,[id]);
-        console.log(ids);
         if(ids && ids.length > 0) return ids[0];
         return;
 

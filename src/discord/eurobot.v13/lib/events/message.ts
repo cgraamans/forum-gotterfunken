@@ -13,7 +13,6 @@ module.exports = {
 
 		if(message.author.bot) return;
 
-
 		// Routing
         if(message.channel && discord.Config.Routes) {
 

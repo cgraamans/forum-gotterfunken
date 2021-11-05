@@ -16,7 +16,7 @@ const clientId = '736008030532927599';
 // const guildId = '637843781617713172';
 
 // FG-E
-const guildId = '633016043136090124';
+// const guildId = '633016043136090124';
 
 for (const file of commandFiles) {
 	const command = require(`./lib/commands/${file}`);
@@ -30,9 +30,14 @@ const rest = new REST({ version: '9' }).setToken(process.env["EUCOBOT"]);
 		console.log('Started refreshing application (/) commands.');
 
 		await rest.put(
-			Routes.applicationGuildCommands(clientId, guildId),
+			Routes.applicationCommands(clientId),
 			{ body: commands },
-		);
+		);		
+
+		// await rest.put(
+		// 	Routes.applicationGuildCommands(clientId, guildId),
+		// 	{ body: commands },
+		// );
 
 		console.log('Successfully reloaded application (/) commands.');
 	} catch (error) {

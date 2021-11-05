@@ -8,11 +8,13 @@ module.exports = {
 		.setDescription('Get help!'),
 	async execute(interaction:CommandInteraction) {
 
+		if(!interaction.guild) return;
+
 		const emoji = interaction.guild.emojis.cache.random();
 
 		let embed = new MessageEmbed()
 			.setTitle(`🇪🇺 Eurobot Help`)
-			.setColor(0xFFCC00)
+			.setColor(0x001489)
 			.setFooter(`Find me on https://twitter.com/eunewsbot `)
 			.setDescription(`${emoji}
 \`\`\`

@@ -27,6 +27,8 @@ module.exports = {
 
 	async execute(interaction:CommandInteraction) {
 
+		if(!interaction.guild) return;
+
 		const news = new NewsModel();
 
 		let newsObj:Eurobot.News.Obj = {keyword:"eunews"};

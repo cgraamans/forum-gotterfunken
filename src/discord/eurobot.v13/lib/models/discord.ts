@@ -1,16 +1,8 @@
-import {Message} from "discord.js";
+import {Message, MessageEmbed} from "discord.js";
 import discord from "../services/discord";
-
-// import * as FileType from "file-type"
-// import * as https from "https";
-
-// import Twitter from "../services/twitter";
-// import Tools from '../lib/tools';
-
 import {Eurobot} from "../../types/index";
 
-// import db from "../services/db";
-
+import Tools from '../tools';
 
 export default class DiscordModel {
 
@@ -34,6 +26,32 @@ export default class DiscordModel {
         }
 
         return comment;
+
+    }
+
+    // push job outputs to discord
+    public async pushJobToDiscord(name:string,embed:MessageEmbed){
+        
+        const confChannels = discord.Config.Channels.filter(ch=>ch.category === name);
+        if(confChannels.length < 1) return;
+        
+        discord.Client.guilds.cache.forEach(guild => {
+
+            Tools.asyncForEach(confChannels,async (target:Eurobot.Channel) => {
+
+                const channel = guild.channels.cache.get(target.channel_id);
+                if(channel && channel.isText()) {
+                    await channel.send({embeds:[embed]});
+                }
+                return;
+
+            });
+
+            return;
+
+        });
+
+        return;
 
     }
 
