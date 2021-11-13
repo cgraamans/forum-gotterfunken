@@ -8,7 +8,13 @@ const commands = [];
 const commandFiles = fs.readdirSync('./lib/commands').filter(file=>!file.endsWith(".map"));
 
 // Place your client and guild ids here
-const clientId = '736008030532927599';
+
+// Eurobot
+const clientId = '673969077319892992';
+
+// EucoBot
+// const clientId = '736008030532927599';
+
 // FG
 // const guildId = '257838262943481857';
 
@@ -23,7 +29,7 @@ for (const file of commandFiles) {
 	commands.push(command.data.toJSON());
 }
 
-const rest = new REST({ version: '9' }).setToken(process.env["EUCOBOT"]);
+const rest = new REST({ version: '9' }).setToken(process.env["EUROBOT_DISCORD"]);
 
 (async () => {
 	try {

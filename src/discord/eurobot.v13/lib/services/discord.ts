@@ -17,7 +17,7 @@ class Discord {
 
     private Roles:string[] = [];
 
-    private key:string = process.env.EUCOBOT;
+    private key:string = process.env.EUROBOT_DISCORD;
 
     // Service Instance Initialization
     static getInstance() {

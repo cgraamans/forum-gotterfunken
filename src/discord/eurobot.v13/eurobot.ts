@@ -146,7 +146,7 @@ try {
     }));
 
     // News JOB
-    jobs.push(schedule.scheduleJob(`0 */3 * * *`, async function(){
+    jobs.push(schedule.scheduleJob(`0 */4 * * *`, async function(){
 
         let newsObj:Eurobot.News.Obj = {keyword:"eunews"};
 
