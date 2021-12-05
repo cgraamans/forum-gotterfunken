@@ -29,6 +29,7 @@ module.exports = {
 	/events - list events
 
 	/country - list countries
+	/country <country name> add/remove country.
 
 \`\`\`
 			`);

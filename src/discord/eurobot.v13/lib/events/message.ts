@@ -144,7 +144,20 @@ module.exports = {
 		if(message.content.toLowerCase().endsWith("gotterfunken") || message.content.toLowerCase().endsWith("götterfunken")) {
 
 			const emoji = message.guild.emojis.cache.random();
-			await message.channel.send(`${emoji}`);
+			await message.channel.send(`TOCHTER ${emoji}`);
+
+			return;
+
+		}
+
+		// GOTTERFUNKEN React
+		if(message.content === "AUS") {
+
+			const emoji = message.guild.emojis.cache.random();
+			const emoji2 = message.guild.emojis.cache.random();
+
+			await message.channel.send(`ELYSIUM ${emoji}`);
+			await message.channel.send(`${emoji2}`);
 
 			return;
 
