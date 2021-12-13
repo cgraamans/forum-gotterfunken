@@ -54,18 +54,19 @@ export default class NewsModel {
         if(news.row.subreddit) name = news.row.subreddit;
         if(news.row.name) name = news.row.name;
 
-        let footer = `Source: ${name}`;
-        if(news.row.url) footer += ` | URL: ${news.row.url}`;
-
         let text = ``;
+        let footer = `Source: ${name}`;
 
         // subreddits
         if(news.subreddit && news.subreddit.length > 0) {
 
             let embed = new Discord.MessageEmbed()
                 .setTitle(`🇪🇺 Eurobot News`)
-                .setColor(0xFFCC00)
-                .setFooter(footer);
+                .setColor(0xFFCC00);
+            if(news.row.url) {
+                footer = `Source: ${name} | URL: ${news.row.url}`;
+            }
+            embed.setFooter(footer);
 
             // filter sticked
             news.subreddit = news.subreddit.filter(submission=>{
