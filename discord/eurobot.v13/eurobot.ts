@@ -25,7 +25,7 @@ try {
     const commands = [];
 
     console.log(__dirname);
-    console.log(new Date(),`@ ${__dirname}`)
+    console.log(new Date(),`@ ${__dirname}`);
 
     const commandFiles = fs.readdirSync(__dirname+'/lib/commands').filter(file=>!file.endsWith(".map"));
 

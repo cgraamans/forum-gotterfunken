@@ -4,7 +4,7 @@
   "description": "eurobot using discord.js v13",
   "main": "eurobot.js",
   "scripts": {
-    "start": "npx ts-node-dev --respawn --transpile-only eurobot.ts",
+    "start": "npx ts-node-dev --respawn --transpile-only eurobot.ts > eurobot.log",
     "test": "npx tslint -c tslint.json '**/**/*.ts'",
     "build": "tsc"
   },
