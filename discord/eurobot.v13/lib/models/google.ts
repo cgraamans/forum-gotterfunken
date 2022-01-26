@@ -103,9 +103,10 @@ export class CalendarModel {
         
                     }
         
-                    if(item.description) description = `${item.description}\n`;
-        
-                    calendar += `🔹**${item.summary}**\n${dateString}\n${description}`;    
+                    if(item.description) {
+                        description = `${item.description.replace(/(<([^>]+)>)/ig, '')}\n`;
+                    }
+                    calendar += `🔹**${item.summary}**\n${dateString}\n${description}\n`;    
 
                 }
     

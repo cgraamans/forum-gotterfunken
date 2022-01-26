@@ -77,18 +77,19 @@ try {
                 .setColor(0x001489);
 
             Tools.asyncForEach(calendar,async (entry:any)=>{
-                
-                const loggedID = await calendarModel.getLogID(entry.id);
 
-                if(loggedID) return; 
                 if(!entry.start) return;
                 if(!entry.start.dateTime) return;
                 if(entry.status !== "confirmed") return;
 
+                const loggedID = await calendarModel.getLogID(entry.id);
+
+                if(loggedID) return; 
+
                 let description = "";
                 if(entry.description) description = `${entry.description}\n`;
 
-                embed.setDescription(`🔹**${entry.summary}**\n${description}\n\nStarts: ${entry.start.dateTime}\nEnds: ${entry.end.dateTime}`)
+                embed.setDescription(`**${entry.summary}**\n${description}\nStarts: ${Tools.dateToHHss(new Date(entry.start.dateTime),false)} (NOW!), Ends: ${Tools.dateToHHss(new Date(entry.end.dateTime),false)}`)
 
                 await discordModel.pushJobToDiscord("Job-Calendar-EventCheck",embed);
 
@@ -118,7 +119,7 @@ try {
 			.setTitle(`🇪🇺 Eurobot Calendar`)
 			.setDescription(calendarDescription + calendar)
 			.setColor(0x001489)
-            .setFooter(`you can use /calendar as well :)`);
+            .setFooter(`use /calendar :)`);
     
         await discordModel.pushJobToDiscord("Job-Calendar",embed);
 
@@ -139,7 +140,7 @@ try {
 			.setTitle(`🇪🇺 Eurobot Calendar`)
 			.setDescription(calendarDescription + calendar)
 			.setColor(0x001489)
-            .setFooter(`you can use /calendar as well :)`);
+            .setFooter(`use /calendar :)`);
     
         await discordModel.pushJobToDiscord("Job-Calendar",embed);
 
@@ -157,17 +158,21 @@ try {
 
 		// get news
 		newsObj = await newsModel.get(newsObj);
-		if(newsObj.subreddit.length > 0 || newsObj.twitter.length > 0) {
+		if(newsObj.subreddit.length > 0 || newsObj.twitter.length > 0) {    
 
             const embed = newsModel.toRich(newsObj);
+            if(embed.footer) embed.setFooter(embed.footer.text + " | use /news :)");
+
             await discordModel.pushJobToDiscord("Job-News",embed);
     
         }
 
         return;
-    
+
     }));    
 
 } catch(e) {
+
     console.error(e);
+
 }

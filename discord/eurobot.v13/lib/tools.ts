@@ -59,22 +59,26 @@ export class Tools {
     
     }
 
-    // YYYY-MM-DD HH:ss output.
-    dateToHHss(DateObj:Date) {
+    // [YYYY-MM-DD]? HH:ss output.
+    dateToHHss(DateObj:Date,setYear:boolean = true) {
 
-        let mm = DateObj.getMonth() + 1,
+        const mm = DateObj.getMonth() + 1,
         dd = DateObj.getDate();
 
-        let date = [
+        const date = [
             DateObj.getFullYear() + "-",
             (mm>9 ? "" : "0") + mm + "-",
             (dd>9 ? "" : "0") + dd
         ].join("");
-                
-        return date + " " + [
-                (DateObj.getHours() > 9 ? "" : "0") + DateObj.getHours() +":",
-                (DateObj.getMinutes() > 9 ? "" : "0") + DateObj.getMinutes()
-            ].join(""); 
+               
+        const time = [
+            (DateObj.getHours() > 9 ? "" : "0") + DateObj.getHours() +":",
+            (DateObj.getMinutes() > 9 ? "" : "0") + DateObj.getMinutes()
+        ].join("");
+
+        const dateString = setYear ? date + " " : "";
+
+        return dateString + time; 
 
     }
 

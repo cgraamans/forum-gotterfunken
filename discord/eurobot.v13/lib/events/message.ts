@@ -13,17 +13,20 @@ module.exports = {
 
 		if(message.webhookId) console.log(message);
 
-		if(message.author.bot) return;
-
 		// Routing
 		if(discord.Config.Routes) {
 
 			let channelId:string;
-			if(message.webhookId) channelId = message.channelId;
+			if(message.webhookId) {
+				
+				channelId = message.channelId;
+				console.log("WEBHOOK",message,"/WEBHOOK");
+				console.log("CID",channelId,"/CID");
+			}
 			if(message.channel && message.channel.id) channelId = message.channel.id;
 
 			if(!channelId) return;
-
+			
 			let routing = discord.Config.Routes.filter(route=>route.from === channelId)
 			if(routing.length > 0) {
 
@@ -54,6 +57,8 @@ module.exports = {
 			}
 
 		}
+
+		if(message.author.id === discord.Client.user.id) return;
 
 		// Channel specific functions
 		if(message.channel) {
@@ -180,6 +185,16 @@ module.exports = {
 				return;
 
 			}
+
+			// Varoufakis React
+			if(message.content.toLowerCase().includes("varoufakis")) {
+
+				const emoji = message.guild.emojis.cache.find(x=>x.name === "dijsselbloem");
+				if(emoji) await message.reply(`${emoji}`);
+
+				return;
+
+			}			
 
 		}
 
