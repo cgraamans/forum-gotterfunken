@@ -77,7 +77,7 @@ export class DiscordModelMessage {
             const routing = DiscordService.Config.Routes.filter(route=>route.from === message.channel.id)
             if(routing.length > 0) {
 
-                const messageAttachment = message.attachments.size > 0 ? message.attachments.array()[0].url : null;
+                const messageAttachment = message.attachments.size > 0 ? message.attachments.first().url : null;
 
                 let newMessage:Discord.MessageEmbed | string = new Discord.MessageEmbed()
                     .setAuthor(message.author.username, message.author.avatarURL())
@@ -165,7 +165,7 @@ export class DiscordModelMessage {
 
         let channels:string[] = [];
 
-        options.forEach((section:string,idx:number)=>{
+        options.forEach((section:string)=>{
 
             const matchedChannel = section.match(Discord.MessageMentions.CHANNELS_PATTERN);
             if(matchedChannel && !section.startsWith("/"))
@@ -176,6 +176,8 @@ export class DiscordModelMessage {
         return channels;
 
     }
+
+    
 
     public CommandGetOptionsNumbers(options:string[]) {
 
